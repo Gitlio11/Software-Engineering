@@ -49,6 +49,7 @@ public class UnitTest {
                 assertThat(future.toCompletableFuture()).isCompletedWithValueMatching(result -> {
                     return contentAsString(result).equals("Hi!");
                 });
+                return true;
             });
         } finally {
             actorSystem.terminate();

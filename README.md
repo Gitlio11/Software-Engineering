@@ -22,6 +22,43 @@ run
 
 This will start the frontend and backend on their respective ports. You can access the landing page by navigating to `http://localhost:9038`.
 
+## F4: Department Research Profiles
+
+Browse and explore the research activity of each academic department at SMU.
+
+### Viewing the Department List
+
+Navigate to `/departments` in the frontend to see all departments with:
+
+- Number of faculty members
+- Number of active research projects
+- Number of funded projects
+- Publications in the last 3 years
+- Top research keywords
+
+Use the sort and filter controls to order departments by faculty count, publications, or name. The search bar lets you narrow by department name.
+
+### Viewing a Department Detail Page
+
+Click any department card to open its detail page (`/departments/:name`), which shows:
+
+- Full faculty roster with links to individual profiles
+- All projects led by faculty in that department (active and inactive)
+- An interactive keyword cloud of the department's research interests
+
+### API Access (Developers)
+
+The backend exposes two public REST endpoints — no authentication required:
+
+```
+GET /department/departmentList?sortBy=name&order=asc&pageLimit=10&offset=0
+GET /department/departmentDetail/Computer%20Science
+```
+
+See `docs/features/F4.md` for full request/response documentation.
+
+---
+
 ## Contribution Guidelines
 For contributors, please follow these guidelines when making changes to the code:
 

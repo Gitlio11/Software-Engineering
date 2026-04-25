@@ -316,6 +316,12 @@ POST          /organization/organizationListByName                              
 #################################### Organizations #############################################################################
 
 
+#################################### Departments (F4 - Team 5) #############################################################################
+GET           /department/departmentList                                                                          controllers.DepartmentController.departmentList(pageLimit: java.util.Optional[Integer], offset: java.util.Optional[Integer], sortBy: java.util.Optional[String], order: java.util.Optional[String])
+GET           /department/departmentDetail/:departmentName                                                        controllers.DepartmentController.departmentDetail(departmentName: String)
+#################################### End Departments ###############################################################################
+
+
 #################################### Bug Reports #######################################################################
 POST          /bugReport/addBugReport                                                                             @controllers.BugReportController.addBugReport
 GET           /bugReport/getBugReport/id/:id                                                                      @controllers.BugReportController.getBugReport(id: Long, format: String="json")
