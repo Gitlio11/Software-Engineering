@@ -2,7 +2,11 @@
 
 @main("SMU Departments", null) {
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <div class="container">
+
+        <!-- Title -->
         <div class="row">
             <div class="col s12">
                 <h3 class="center">SMU Departments</h3>
@@ -10,7 +14,7 @@
             </div>
         </div>
 
-            <!-- Search and Sort Bar -->
+        <!-- Search and Sort Bar -->
         <div class="row">
             <div class="col s12 m6">
                 <div class="input-field">
@@ -25,22 +29,30 @@
                         <option value="name">Sort by Name</option>
                         <option value="faculty">Sort by Faculty Count</option>
                         <option value="projects">Sort by Active Projects</option>
+                        <option value="publications">Sort by Publications</option>
                     </select>
                     <label>Sort By</label>
                 </div>
             </div>
         </div>
 
-            <!-- Department Cards -->
+        <!-- Department Cards -->
         <div class="row" id="departmentCards">
 
-            <div class="col s12 m6 l4 dept-card" data-name="Computer Science" data-faculty="24" data-projects="12">
+            <div class="col s12 m6 l4 dept-card" data-name="Computer Science" data-faculty="24" data-projects="12" data-publications="45">
                 <div class="card hoverable">
                     <div class="card-content">
                         <span class="card-title">Computer Science</span>
                         <p><b>Faculty:</b> 24</p>
                         <p><b>Active Projects:</b> 12</p>
-                        <p><b>Top Keywords:</b> AI, Machine Learning, Cybersecurity, Data Science, NLP</p>
+                        <p><b>Funded Projects:</b> 8</p>
+                        <p><b>Publications (Last 3 Years):</b> 45</p>
+                        <p><b>Top Keywords:</b></p>
+                        <span class="chip">AI</span>
+                        <span class="chip">Machine Learning</span>
+                        <span class="chip">Cybersecurity</span>
+                        <span class="chip">Data Science</span>
+                        <span class="chip">NLP</span>
                     </div>
                     <div class="card-action">
                         <a href="/departments/1">View Profile</a>
@@ -48,13 +60,20 @@
                 </div>
             </div>
 
-            <div class="col s12 m6 l4 dept-card" data-name="Electrical Engineering" data-faculty="18" data-projects="9">
+            <div class="col s12 m6 l4 dept-card" data-name="Electrical Engineering" data-faculty="18" data-projects="9" data-publications="30">
                 <div class="card hoverable">
                     <div class="card-content">
                         <span class="card-title">Electrical Engineering</span>
                         <p><b>Faculty:</b> 18</p>
                         <p><b>Active Projects:</b> 9</p>
-                        <p><b>Top Keywords:</b> Circuits, Robotics, Signal Processing, IoT, VLSI</p>
+                        <p><b>Funded Projects:</b> 6</p>
+                        <p><b>Publications (Last 3 Years):</b> 30</p>
+                        <p><b>Top Keywords:</b></p>
+                        <span class="chip">Circuits</span>
+                        <span class="chip">Robotics</span>
+                        <span class="chip">Signal Processing</span>
+                        <span class="chip">IoT</span>
+                        <span class="chip">VLSI</span>
                     </div>
                     <div class="card-action">
                         <a href="/departments/2">View Profile</a>
@@ -62,13 +81,20 @@
                 </div>
             </div>
 
-            <div class="col s12 m6 l4 dept-card" data-name="Mechanical Engineering" data-faculty="20" data-projects="8">
+            <div class="col s12 m6 l4 dept-card" data-name="Mechanical Engineering" data-faculty="20" data-projects="8" data-publications="25">
                 <div class="card hoverable">
                     <div class="card-content">
                         <span class="card-title">Mechanical Engineering</span>
                         <p><b>Faculty:</b> 20</p>
                         <p><b>Active Projects:</b> 8</p>
-                        <p><b>Top Keywords:</b> Thermodynamics, Fluid Dynamics, Manufacturing, CAD, Materials</p>
+                        <p><b>Funded Projects:</b> 5</p>
+                        <p><b>Publications (Last 3 Years):</b> 25</p>
+                        <p><b>Top Keywords:</b></p>
+                        <span class="chip">Thermodynamics</span>
+                        <span class="chip">Fluid Dynamics</span>
+                        <span class="chip">Manufacturing</span>
+                        <span class="chip">CAD</span>
+                        <span class="chip">Materials</span>
                     </div>
                     <div class="card-action">
                         <a href="/departments/3">View Profile</a>
@@ -76,41 +102,130 @@
                 </div>
             </div>
 
+            <div class="col s12 m6 l4 dept-card" data-name="Civil Engineering" data-faculty="15" data-projects="6" data-publications="20">
+                <div class="card hoverable">
+                    <div class="card-content">
+                        <span class="card-title">Civil Engineering</span>
+                        <p><b>Faculty:</b> 15</p>
+                        <p><b>Active Projects:</b> 6</p>
+                        <p><b>Funded Projects:</b> 4</p>
+                        <p><b>Publications (Last 3 Years):</b> 20</p>
+                        <p><b>Top Keywords:</b></p>
+                        <span class="chip">Structures</span>
+                        <span class="chip">Geotechnical</span>
+                        <span class="chip">Transportation</span>
+                        <span class="chip">Environmental</span>
+                        <span class="chip">Construction</span>
+                    </div>
+                    <div class="card-action">
+                        <a href="/departments/4">View Profile</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col s12 m6 l4 dept-card" data-name="Data Science" data-faculty="16" data-projects="10" data-publications="35">
+                <div class="card hoverable">
+                    <div class="card-content">
+                        <span class="card-title">Data Science</span>
+                        <p><b>Faculty:</b> 16</p>
+                        <p><b>Active Projects:</b> 10</p>
+                        <p><b>Funded Projects:</b> 7</p>
+                        <p><b>Publications (Last 3 Years):</b> 35</p>
+                        <p><b>Top Keywords:</b></p>
+                        <span class="chip">Big Data</span>
+                        <span class="chip">Statistics</span>
+                        <span class="chip">Visualization</span>
+                        <span class="chip">Deep Learning</span>
+                        <span class="chip">Analytics</span>
+                    </div>
+                    <div class="card-action">
+                        <a href="/departments/5">View Profile</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
+        <!-- Bar Chart -->
+        <div class="row">
+            <div class="col s12">
+                <div class="card z-depth-1">
+                    <div class="card-content">
+                        <span class="card-title center">Publications vs Funded Projects (Last 3 Years)</span>
+                        <canvas id="deptChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-            function filterDepartments() {
-                var input = document.getElementById("searchInput").value.toLowerCase();
-                var cards = document.querySelectorAll(".dept-card");
-                cards.forEach(function(card) {
-                    var name = card.getAttribute("data-name").toLowerCase();
-                    if (name.includes(input)) {
-                        card.style.display = "";
-                    } else {
-                        card.style.display = "none";
+        // Bar Chart
+        var ctx = document.getElementById('deptChart').getContext('2d');
+        var deptChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Computer Science', 'Electrical Engineering', 'Mechanical Engineering', 'Civil Engineering', 'Data Science'],
+                datasets: [
+                    {
+                        label: 'Publications',
+                        data: [45, 30, 25, 20, 35],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    },
+                    {
+                        label: 'Funded Projects',
+                        data: [8, 6, 5, 4, 7],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
                     }
-                });
-            }
-
-            function sortDepartments() {
-                var sortBy = document.getElementById("sortSelect").value;
-                var container = document.getElementById("departmentCards");
-                var cards = Array.from(document.querySelectorAll(".dept-card"));
-
-                cards.sort(function(a, b) {
-                    if (sortBy === "name") {
-                        return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"));
-                    } else if (sortBy === "faculty") {
-                        return b.getAttribute("data-faculty") - a.getAttribute("data-faculty");
-                    } else if (sortBy === "projects") {
-                        return b.getAttribute("data-projects") - a.getAttribute("data-projects");
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
-                });
-
-                cards.forEach(function(card) {
-                    container.appendChild(card);
-                });
+                }
             }
+        });
+
+        // Filter
+        function filterDepartments() {
+            var input = document.getElementById("searchInput").value.toLowerCase();
+            var cards = document.querySelectorAll(".dept-card");
+            cards.forEach(function(card) {
+                var name = card.getAttribute("data-name").toLowerCase();
+                if (name.includes(input)) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+
+        // Sort
+        function sortDepartments() {
+            var sortBy = document.getElementById("sortSelect").value;
+            var container = document.getElementById("departmentCards");
+            var cards = Array.from(document.querySelectorAll(".dept-card"));
+
+            cards.sort(function(a, b) {
+                if (sortBy === "name") {
+                    return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"));
+                } else if (sortBy === "faculty") {
+                    return b.getAttribute("data-faculty") - a.getAttribute("data-faculty");
+                } else if (sortBy === "projects") {
+                    return b.getAttribute("data-projects") - a.getAttribute("data-projects");
+                } else if (sortBy === "publications") {
+                    return b.getAttribute("data-publications") - a.getAttribute("data-publications");
+                }
+            });
+
+            cards.forEach(function(card) {
+                container.appendChild(card);
+            });
+        }
     </script>
+
 }
