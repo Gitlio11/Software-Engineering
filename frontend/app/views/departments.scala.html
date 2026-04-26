@@ -1,0 +1,116 @@
+@(userId: Long, username: String)
+
+@main("SMU Departments", null) {
+
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h3 class="center">SMU Departments</h3>
+                <p class="center">Explore SMU's research departments, faculty, and projects.</p>
+            </div>
+        </div>
+
+            <!-- Search and Sort Bar -->
+        <div class="row">
+            <div class="col s12 m6">
+                <div class="input-field">
+                    <i class="material-icons prefix">search</i>
+                    <input type="text" id="searchInput" onkeyup="filterDepartments()">
+                    <label for="searchInput">Search Departments</label>
+                </div>
+            </div>
+            <div class="col s12 m6">
+                <div class="input-field">
+                    <select id="sortSelect" onchange="sortDepartments()">
+                        <option value="name">Sort by Name</option>
+                        <option value="faculty">Sort by Faculty Count</option>
+                        <option value="projects">Sort by Active Projects</option>
+                    </select>
+                    <label>Sort By</label>
+                </div>
+            </div>
+        </div>
+
+            <!-- Department Cards -->
+        <div class="row" id="departmentCards">
+
+            <div class="col s12 m6 l4 dept-card" data-name="Computer Science" data-faculty="24" data-projects="12">
+                <div class="card hoverable">
+                    <div class="card-content">
+                        <span class="card-title">Computer Science</span>
+                        <p><b>Faculty:</b> 24</p>
+                        <p><b>Active Projects:</b> 12</p>
+                        <p><b>Top Keywords:</b> AI, Machine Learning, Cybersecurity, Data Science, NLP</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="/departments/1">View Profile</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col s12 m6 l4 dept-card" data-name="Electrical Engineering" data-faculty="18" data-projects="9">
+                <div class="card hoverable">
+                    <div class="card-content">
+                        <span class="card-title">Electrical Engineering</span>
+                        <p><b>Faculty:</b> 18</p>
+                        <p><b>Active Projects:</b> 9</p>
+                        <p><b>Top Keywords:</b> Circuits, Robotics, Signal Processing, IoT, VLSI</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="/departments/2">View Profile</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col s12 m6 l4 dept-card" data-name="Mechanical Engineering" data-faculty="20" data-projects="8">
+                <div class="card hoverable">
+                    <div class="card-content">
+                        <span class="card-title">Mechanical Engineering</span>
+                        <p><b>Faculty:</b> 20</p>
+                        <p><b>Active Projects:</b> 8</p>
+                        <p><b>Top Keywords:</b> Thermodynamics, Fluid Dynamics, Manufacturing, CAD, Materials</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="/departments/3">View Profile</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+            function filterDepartments() {
+                var input = document.getElementById("searchInput").value.toLowerCase();
+                var cards = document.querySelectorAll(".dept-card");
+                cards.forEach(function(card) {
+                    var name = card.getAttribute("data-name").toLowerCase();
+                    if (name.includes(input)) {
+                        card.style.display = "";
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+            }
+
+            function sortDepartments() {
+                var sortBy = document.getElementById("sortSelect").value;
+                var container = document.getElementById("departmentCards");
+                var cards = Array.from(document.querySelectorAll(".dept-card"));
+
+                cards.sort(function(a, b) {
+                    if (sortBy === "name") {
+                        return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"));
+                    } else if (sortBy === "faculty") {
+                        return b.getAttribute("data-faculty") - a.getAttribute("data-faculty");
+                    } else if (sortBy === "projects") {
+                        return b.getAttribute("data-projects") - a.getAttribute("data-projects");
+                    }
+                });
+
+                cards.forEach(function(card) {
+                    container.appendChild(card);
+                });
+            }
+    </script>
+}
