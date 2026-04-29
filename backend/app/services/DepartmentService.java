@@ -17,34 +17,22 @@ import utils.Common;
 import java.util.*;
 
 /**
- * Service providing aggregated department-level statistics derived entirely
- * from existing tables (researcher_info, project, paper, author, author_paper,
- * user). No department table exists in the schema — all aggregations are
- * computed at query time and merged in-memory.
+ * @project: SciHub
+ * @description: service support methods for DepartmentController
+ * @date: 2025-11-01
  */
 public class DepartmentService {
 
-    // ------------------------------------------------------------------
-    // Public API
-    // ------------------------------------------------------------------
-
     /**
-     * Builds the full list of departments by running five SQL aggregation
-     * queries and merging results in-memory by department name.
+     * Gets all departments by aggregating data from researcher_info, project, paper, and author tables.
+     * No department table exists so everything is computed from joins.
      *
-     * <p>The five queries cover: (1) faculty count per department, (2) active
-     * project count, (3) funded project count, (4) publication count in the
-     * last 3 calendar years, and (5) keyword extraction via GROUP_CONCAT.
-     * Results are merged into a {@link LinkedHashMap} so that insertion order
-     * (alphabetical from the ORDER BY in Q1) is preserved.
-     *
-     * @return list of {@link Department} DTOs, one per distinct department name
+     * @return list of Department objects with aggregated stats
      */
     public List<Department> buildAllDepartments() {
-        // Keyed by lowercase+trimmed department name for case-insensitive merging
         Map<String, Department> depMap = new LinkedHashMap<>();
 
-        // ------ Query 1: base list – school + faculty count ------ //
+        // get base department info and faculty count
         String baseSql =
             "SELECT ri.department, ri.school, COUNT(*) AS faculty_count " +
             "FROM researcher_info ri " +
@@ -63,8 +51,7 @@ public class DepartmentService {
             depMap.put(rawName.trim().toLowerCase(), d);
         }
 
-        // ------ Query 2: active project count per department ------ //
-        // is_active is varchar; accept 'true' (case-insensitive) and '1'
+        // get active project count per department (is_active is varchar, check 'true' and '1')
         String activeSql =
             "SELECT ri.department, COUNT(DISTINCT p.id) AS active_project_count " +
             "FROM researcher_info ri " +
@@ -80,8 +67,7 @@ public class DepartmentService {
             }
         }
 
-        // ------ Query 3: funded project count per department ------ //
-        // "funded" = sponsor_organization_id IS NOT NULL
+        // get funded project count (funded = has a sponsor organization)
         String fundedSql =
             "SELECT ri.department, COUNT(DISTINCT p.id) AS funded_project_count " +
             "FROM researcher_info ri " +
@@ -97,9 +83,8 @@ public class DepartmentService {
             }
         }
 
-        // ------ Query 4: publication count in the last 3 calendar years ------ //
-        // author-to-user match is by first_name + last_name (case-insensitive, trimmed)
-        // paper.year is varchar – cast to UNSIGNED before comparing
+        // get publication count for last 3 years
+        // match authors to users by first + last name since there's no direct link
         int cutoff = Calendar.getInstance().get(Calendar.YEAR) - 3;
         String pubSql =
             "SELECT ri.department, COUNT(DISTINCT ap.paper_id) AS pub_count " +
@@ -124,7 +109,7 @@ public class DepartmentService {
             }
         }
 
-        // ------ Query 5: concatenated research_fields for keyword extraction ------ //
+        // get research keywords by concatenating all research_fields per department
         String kwSql =
             "SELECT department, GROUP_CONCAT(research_fields SEPARATOR ',') AS all_fields " +
             "FROM researcher_info " +
@@ -142,14 +127,10 @@ public class DepartmentService {
     }
 
     /**
-     * Builds a detailed department profile, including faculty list and project
-     * list, for the given department name.
+     * Gets full department details including faculty list and project list
      *
-     * <p>Returns {@code null} when the name is blank/null or no matching
-     * department is found.
-     *
-     * @param name department name exactly as stored in researcher_info.department
-     * @return populated {@link Department} with faculty + projects, or {@code null}
+     * @param name the department name
+     * @return Department with faculty and projects populated, or null if not found
      */
     public Department buildDepartmentDetail(String name) {
         if (name == null || name.trim().isEmpty()) return null;
@@ -164,7 +145,7 @@ public class DepartmentService {
         }
         if (match == null) return null;
 
-        // Populate faculty list via Ebean ORM (ResearcherInfo eagerly loads User)
+        // load faculty using ResearcherInfo finder (eagerly loads User)
         List<ResearcherInfo> riList = ResearcherInfo.find.query()
             .where()
             .eq("department", match.getName())
@@ -184,7 +165,7 @@ public class DepartmentService {
         }
         match.setFaculty(facultyList);
 
-        // Populate projects via raw SQL (projects whose PI is in this department)
+        // load projects for this department
         String projSql =
             "SELECT p.id, p.title, p.is_active, p.start_date, p.principal_investigator_id " +
             "FROM project p " +
@@ -211,27 +192,20 @@ public class DepartmentService {
     }
 
     /**
-     * Sorts and paginates a list of departments, returning a {@link RESTResponse}
-     * compatible with the existing API shape used by OrganizationController.
+     * Gets a list of departments based on optional offset, pageLimit, sort field and order
      *
-     * <p>Supported sort keys: {@code name}, {@code facultyCount},
-     * {@code activeProjectCount}, {@code publicationCountLast3Years},
-     * {@code fundedProjectCount}. Falls back to {@code name asc} for any
-     * unrecognised key. The list is sorted in-place then paginated.
-     *
-     * @param departments full list returned by {@link #buildAllDepartments()}
-     * @param offset      0-based start index (absent = 0)
-     * @param pageLimit   max items to return (absent = all)
-     * @param sortBy      field name to sort by
-     * @param order       "asc" or "desc" (case-insensitive)
-     * @return paginated {@link RESTResponse}
+     * @param departments  all departments
+     * @param offset       shows the start index of the rows we want to receive
+     * @param pageLimit    shows the number of rows we want to receive
+     * @param sortBy       field to sort by
+     * @param order        asc or desc
+     * @return paginated RESTResponse
      */
     public RESTResponse paginateAndSort(List<Department> departments,
                                         Optional<Integer> offset,
                                         Optional<Integer> pageLimit,
                                         String sortBy,
                                         String order) {
-        // Build comparator from sortBy, falling back to name for unknown keys
         Comparator<Department> comparator;
         switch (sortBy == null ? "" : sortBy) {
             case "facultyCount":
@@ -256,7 +230,6 @@ public class DepartmentService {
         }
         departments.sort(comparator);
 
-        // Pagination – mirrors OrganizationService.paginateResults logic
         RESTResponse response = new RESTResponse();
         int maxRows = departments.size();
         if (pageLimit.isPresent()) {
@@ -279,11 +252,10 @@ public class DepartmentService {
     }
 
     /**
-     * Serializes a list of {@link Department} objects into a Jackson
-     * {@link ArrayNode}, mirroring OrganizationService.organizationList2JsonArray.
+     * Turn department list into json array
      *
-     * @param departmentList list to serialise
-     * @return JSON array node
+     * @param departmentList list of departments
+     * @return json array of serialized departments
      */
     public ArrayNode departmentList2JsonArray(List<Department> departmentList) {
         ArrayNode node = Json.newArray();
@@ -295,16 +267,11 @@ public class DepartmentService {
     }
 
     /**
-     * Extracts the top-N keywords from a comma/semicolon-delimited string of
-     * research field tags by counting token frequency.
+     * Extracts top N keywords from a comma/semicolon separated string by frequency
      *
-     * <p>Tokens shorter than 3 characters are dropped (note: this excludes
-     * two-letter abbreviations such as "AI" and "ML" — a known limitation).
-     * Matching is case-insensitive; the returned keywords are lowercased.
-     *
-     * @param concatenated raw string from GROUP_CONCAT, may be null or empty
-     * @param topN         maximum number of keywords to return
-     * @return ordered list (most frequent first) of up to topN keywords
+     * @param concatenated raw string from GROUP_CONCAT
+     * @param topN max number of keywords to return
+     * @return list of keywords ordered by frequency
      */
     public List<String> extractTopKeywords(String concatenated, int topN) {
         if (concatenated == null || concatenated.trim().isEmpty()) {
@@ -315,11 +282,10 @@ public class DepartmentService {
         Map<String, Integer> freq = new LinkedHashMap<>();
         for (String token : tokens) {
             String t = token.trim().toLowerCase();
-            if (t.length() < 3) continue;  // drop short tokens (AI, ML, etc.)
+            if (t.length() < 3) continue;
             freq.merge(t, 1, Integer::sum);
         }
 
-        // Sort by frequency descending, then alphabetically for stable ordering
         return freq.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
                 .thenComparing(Map.Entry.comparingByKey()))
@@ -328,11 +294,6 @@ public class DepartmentService {
             .collect(java.util.stream.Collectors.toList());
     }
 
-    // ------------------------------------------------------------------
-    // Private helpers
-    // ------------------------------------------------------------------
-
-    /** Normalises a department name to the map key form (lowercase + trimmed). */
     private static String safeKey(String raw) {
         return raw == null ? null : raw.trim().toLowerCase();
     }
