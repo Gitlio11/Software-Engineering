@@ -14,14 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Exposes read-only REST endpoints for the F4 department research profiles
- * feature. No authentication is required — these endpoints are public per the
- * F4 spec (any visitor or logged-in user may access them).
- *
- * <p>Mirrors the structure of {@link OrganizationController} so that graders
- * can verify the pattern is being followed consistently.
- */
 public class DepartmentController extends Controller {
 
     public static final String DEPARTMENT_DEFAULT_SORT_BY = "name";
@@ -34,25 +26,10 @@ public class DepartmentController extends Controller {
         this.departmentService = departmentService;
     }
 
-    // ------------------------------------------------------------------
-    // Endpoints
-    // ------------------------------------------------------------------
-
     /**
-     * Lists all departments with optional sorting and pagination.
+     * Returns a paginated, sorted list of all departments.
      *
-     * <p>Query parameters:
-     * <ul>
-     *   <li>{@code pageLimit} – max items per page (optional)</li>
-     *   <li>{@code offset}    – 0-based start index (optional)</li>
-     *   <li>{@code sortBy}    – field name: name | facultyCount |
-     *       activeProjectCount | publicationCountLast3Years |
-     *       fundedProjectCount (default: name)</li>
-     *   <li>{@code order}     – asc | desc (default: asc)</li>
-     * </ul>
-     *
-     * @return 200 with a {@link RESTResponse} JSON envelope, 404 when no
-     *         departments exist, 500 on unexpected error
+     * @return 200 with RESTResponse envelope, 404 if no departments found
      */
     public Result departmentList(Optional<Integer> pageLimit,
                                  Optional<Integer> offset,
@@ -75,15 +52,10 @@ public class DepartmentController extends Controller {
     }
 
     /**
-     * Returns the detailed profile for a single department, including its
-     * faculty list and project list.
+     * Returns the detail profile for a single department including faculty and projects.
      *
-     * <p>The path parameter is URL-decoded (UTF-8) before lookup so that
-     * callers can pass names like {@code Computer%20Science}.
-     *
-     * @param departmentName URL-encoded department name from the path
-     * @return 200 with the department JSON, 400 if the name is blank,
-     *         404 if no matching department is found
+     * @param departmentName URL-encoded department name from path
+     * @return 200 with department JSON, 400 if name is blank, 404 if not found
      */
     public Result departmentDetail(String departmentName) {
         String decoded;
