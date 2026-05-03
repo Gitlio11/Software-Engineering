@@ -12,6 +12,22 @@ jobs:
     name: Backend Unit & Integration Tests
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_pw
+          MYSQL_DATABASE: scihub_test
+          MYSQL_USER: scihub
+          MYSQL_PASSWORD: ci_test_pw
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=ci_root_pw"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,6 +63,10 @@ jobs:
         working-directory: ./backend
         env:
           PLAY_SECRET_KEY: ci-test-secret-key
+          DB_DRIVER: com.mysql.cj.jdbc.Driver
+          DB_URL: "jdbc:mysql://127.0.0.1:3306/scihub_test?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+          DB_USERNAME: scihub
+          DB_PASSWORD: ci_test_pw
 
       - name: Upload test reports
         if: always()
