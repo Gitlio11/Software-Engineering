@@ -1,0 +1,80 @@
+@(profile: com.fasterxml.jackson.databind.JsonNode, userTypes: String)
+
+@main("Faculty Profile") {
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m8 offset-m2">
+                <div class="card-panel">
+                    <h4 class="center">@profile.path("userName").asText("Faculty Profile")</h4>
+
+                    <div class="center" style="margin-bottom: 20px;">
+                        <i class="material-icons large blue-text text-darken-2" style="font-size: 72px;">account_circle</i>
+                    </div>
+
+                    <table class="striped responsive-table">
+                        <tbody>
+                            <tr>
+                                <th style="width: 40%;">Name</th>
+                                <td>@profile.path("userName").asText("-")</td>
+                            </tr>
+                            <tr>
+                                <th>Email</th>
+                                <td>
+                                    @defining(profile.path("email").asText("")) { email =>
+                                        @if(email.nonEmpty) {
+                                            <a href="mailto:@email" class="blue-text">@email</a>
+                                        } else { - }
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Department</th>
+                                <td>@profile.path("department").asText("-")</td>
+                            </tr>
+                            <tr>
+                                <th>School / Institution</th>
+                                <td>@profile.path("school").asText("-")</td>
+                            </tr>
+                            <tr>
+                                <th>Highest Degree</th>
+                                <td>@profile.path("highestDegree").asText("-")</td>
+                            </tr>
+                            <tr>
+                                <th>ORCID</th>
+                                <td>
+                                    @defining(profile.path("orcid").asText("")) { orcid =>
+                                        @if(orcid.nonEmpty) {
+                                            <a href="https://orcid.org/@orcid" target="_blank" class="blue-text">
+                                                @orcid
+                                            </a>
+                                        } else { - }
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Research Fields</th>
+                                <td>
+                                    @defining(profile.path("researchFields").asText("")) { fields =>
+                                        @if(fields.nonEmpty) {
+                                            @for(field <- fields.split("[,;]").toList) {
+                                                <span class="chip blue lighten-5 blue-text text-darken-2"
+                                                      style="margin: 3px;">@field.trim()</span>
+                                            }
+                                        } else { - }
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="center" style="margin-top: 24px;">
+                        <a href="@routes.FacultyProfileController.facultyProfiles()"
+                           class="btn waves-effect waves-light blue darken-2">
+                            <i class="material-icons left">arrow_back</i>Back to Faculty List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
