@@ -1,0 +1,95 @@
+@(application: RAJobApplication, existing: RAJobInterview, userTypes: String)
+@import helper._
+@import models._
+@import models.RAJobInterview
+
+@main("Schedule Interview") {
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <div class="card-panel">
+                    <h4 class="center">Schedule Interview</h4>
+
+                    @if(flash.containsKey("error")) {
+                        <div class="card-panel red lighten-4">
+                            <span class="red-text">@flash("error")</span>
+                        </div>
+                    }
+
+                    @if(existing != null && existing.getStatus() != null && !existing.getStatus().equals("cancelled")) {
+                        <div class="card-panel orange lighten-4">
+                            <p class="orange-text text-darken-3">
+                                <i class="material-icons tiny">warning</i>
+                                An interview is already scheduled for this application.
+                                <a href="@routes.RAJobInterviewController.interviewDetail(existing.getId())" class="orange-text text-darken-3"><strong>View it here.</strong></a>
+                            </p>
+                        </div>
+                    } else {
+                        <div class="row">
+                            <div class="col s12 m8 offset-m2">
+                                <div class="card z-depth-1">
+                                    <div class="card-content">
+                                        <p class="grey-text">
+                                            Applicant: <strong>@application.getApplicant().getUserName()</strong> &mdash;
+                                            Position: <strong>@application.getAppliedRAJob().getTitle()</strong>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <form method="POST"
+                                      action="@routes.RAJobInterviewController.scheduleInterviewPOST(application.getId())">
+
+                                    <div class="input-field">
+                                        <input id="interviewDate" type="date" name="interviewDate" required>
+                                        <label for="interviewDate">Interview Date</label>
+                                    </div>
+
+                                    <div class="input-field">
+                                        <input id="interviewTime" type="time" name="interviewTime" required>
+                                        <label for="interviewTime">Interview Time</label>
+                                    </div>
+
+                                    <div class="input-field">
+                                        <select name="interviewType" id="interviewType" required>
+                                            <option value="" disabled selected>Choose interview type</option>
+                                            <option value="in-person">In-Person</option>
+                                            <option value="online">Online (Zoom / Teams)</option>
+                                        </select>
+                                        <label>Interview Type</label>
+                                    </div>
+
+                                    <div class="input-field">
+                                        <input id="location" type="text" name="location" required>
+                                        <label for="location">Location / Meeting Link</label>
+                                    </div>
+
+                                    <div class="input-field">
+                                        <textarea id="notes" name="notes" class="materialize-textarea"></textarea>
+                                        <label for="notes">Additional Notes (optional)</label>
+                                    </div>
+
+                                    <div class="center" style="margin-top: 20px;">
+                                        <button type="submit" class="btn waves-effect waves-light blue darken-2">
+                                            <i class="material-icons left">event</i>Schedule Interview
+                                        </button>
+                                        <a href="@routes.RAJobController.rajobApplicationDetail(application.getId())"
+                                           class="btn waves-effect waves-light grey darken-1" style="margin-left: 10px;">
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var selects = document.querySelectorAll('select');
+            M.FormSelect.init(selects);
+        });
+    </script>
+}

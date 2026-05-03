@@ -628,6 +628,20 @@ public class Constants {
     public static final String CHECK_RAJOB_EXISTSTR_BACKEND_URL_JOB_APPLICATIONS = "/job/checkJobExist/";
     /*================================================= RAJobs =======================================================*/
 
+    /*================================================= RA Job Interviews ==============================================*/
+    public static final String SCHEDULE_INTERVIEW              = "/rajobInterview/schedule";
+    public static final String GET_INTERVIEW_BY_APPLICATION_ID = "/rajobInterview/getByApplicationId/";
+    public static final String GET_INTERVIEW_BY_ID             = "/rajobInterview/getById/";
+    public static final String GET_INTERVIEWS_BY_APPLICANT     = "/rajobInterview/getByApplicant/";
+    public static final String GET_INTERVIEWS_BY_PUBLISHER     = "/rajobInterview/getByPublisher/";
+    public static final String CANCEL_INTERVIEW                = "/rajobInterview/cancel/";
+    /*================================================= RA Job Interviews ==============================================*/
+
+    /*================================================= Faculty Profiles ===============================================*/
+    public static final String GET_ALL_FACULTY_PROFILES = "/faculty/profiles";
+    public static final String GET_FACULTY_PROFILE      = "/faculty/profile/";
+    /*================================================= Faculty Profiles ===============================================*/
+
     /*================================================= TACandidate =======================================================*/
 
     public static final String TACANDIDATE_REGISTER_POST = "/tacandidate/addTACandidate";
