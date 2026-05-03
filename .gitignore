@@ -3,6 +3,8 @@
 
 tools/**/*
 **application.conf
+!backend/conf/application.conf
+**/application.local.conf
 **/logs/
 **application.log
 *.log
