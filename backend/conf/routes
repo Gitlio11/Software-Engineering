@@ -207,6 +207,21 @@ GET           /rajob/professors                                                 
 
 ######################################### RAJob ########################################################################
 
+########################################## RAJob Interview #############################################################
+POST          /rajobInterview/schedule                                                                      controllers.RAJobInterviewController.scheduleInterview()
+GET           /rajobInterview/getByApplicationId/:applicationId                                             controllers.RAJobInterviewController.getByApplicationId(applicationId: Long)
+GET           /rajobInterview/getById/:interviewId                                                          controllers.RAJobInterviewController.getById(interviewId: Long)
+GET           /rajobInterview/getByApplicant/:userId                                                        controllers.RAJobInterviewController.getByApplicant(userId: Long)
+GET           /rajobInterview/getByPublisher/:userId                                                        controllers.RAJobInterviewController.getByPublisher(userId: Long)
+POST          /rajobInterview/update/:interviewId                                                            controllers.RAJobInterviewController.updateInterview(interviewId: Long)
+GET           /rajobInterview/cancel/:interviewId                                                            controllers.RAJobInterviewController.cancelInterview(interviewId: Long)
+########################################## RAJob Interview #############################################################
+
+########################################## Faculty Profiles ############################################################
+GET           /faculty/profiles                                                                             controllers.FacultyProfileController.getAllFacultyProfiles()
+GET           /faculty/profile/:userId                                                                      controllers.FacultyProfileController.getFacultyProfile(userId: Long)
+########################################## Faculty Profiles ############################################################
+
 ########################################## TAJob #######################################################################
 POST          /tajob/addTAJob                                                                             controllers.TAJobController.addTAJob()
 POST          /tajob/updateTAJob/:tajobId                                                                 controllers.TAJobController.updateTAJob(tajobId: Long)

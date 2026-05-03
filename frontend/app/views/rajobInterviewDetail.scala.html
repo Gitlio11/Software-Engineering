@@ -1,0 +1,118 @@
+@(interview: RAJobInterview, userTypes: String)
+@import helper._
+@import models._
+@import models.RAJobInterview
+
+@main("Interview Details") {
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <div class="card-panel">
+                    <h4 class="center">Interview Details</h4>
+
+                    <div class="row">
+                        <div class="col s12">
+
+                            @if(interview.getStatus() == "cancelled") {
+                                <div class="card-panel red lighten-4 center">
+                                    <span class="red-text"><i class="material-icons tiny">cancel</i> This interview has been cancelled.</span>
+                                </div>
+                            } else if(interview.getStatus() == "scheduled") {
+                                <div class="card-panel green lighten-4 center">
+                                    <span class="green-text"><i class="material-icons tiny">event_available</i> Interview is confirmed.</span>
+                                </div>
+                            }
+
+                            <table class="striped responsive-table">
+                                <tbody>
+                                    @if(interview.getRajobApplication() != null && interview.getRajobApplication().getAppliedRAJob() != null) {
+                                        <tr>
+                                            <th style="max-width: 50px;">RA Position</th>
+                                            <td>
+                                                <a href="@routes.RAJobController.rajobDetail(interview.getRajobApplication().getAppliedRAJob().getId())">
+                                                    @interview.getRajobApplication().getAppliedRAJob().getTitle()
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if(interview.getRajobApplication() != null && interview.getRajobApplication().getApplicant() != null) {
+                                        <tr>
+                                            <th style="max-width: 50px;">Applicant</th>
+                                            <td>@interview.getRajobApplication().getApplicant().getUserName()</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <th style="max-width: 50px;">Date</th>
+                                        <td>@interview.getInterviewDate()</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="max-width: 50px;">Time</th>
+                                        <td>@interview.getInterviewTime()</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="max-width: 50px;">Type</th>
+                                        <td>
+                                            @if(interview.getInterviewType() == "online") {
+                                                <span class="chip blue lighten-4 blue-text">Online</span>
+                                            } else {
+                                                <span class="chip green lighten-4 green-text">In-Person</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="max-width: 50px;">Location / Link</th>
+                                        <td>
+                                            @if(interview.getInterviewType() == "online") {
+                                                <a href="@interview.getLocation()" target="_blank" class="blue-text">
+                                                    @interview.getLocation()
+                                                </a>
+                                            } else {
+                                                @interview.getLocation()
+                                            }
+                                        </td>
+                                    </tr>
+                                    @if(interview.getNotes() != null && !interview.getNotes().isEmpty()) {
+                                        <tr>
+                                            <th style="max-width: 50px;">Notes</th>
+                                            <td style="white-space: pre-wrap;">@interview.getNotes()</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <th style="max-width: 50px;">Status</th>
+                                        <td>
+                                            @if(interview.getStatus() == "scheduled") {
+                                                <span class="new badge green" data-badge-caption="scheduled"></span>
+                                            } else if(interview.getStatus() == "cancelled") {
+                                                <span class="new badge red" data-badge-caption="cancelled"></span>
+                                            } else {
+                                                <span class="new badge grey" data-badge-caption="@interview.getStatus()"></span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="max-width: 50px;">Scheduled On</th>
+                                        <td>@interview.getCreatedTime()</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row center" style="margin-top: 20px;">
+                        @if((userTypes == "1" || userTypes == "0") && interview.getStatus() == "scheduled") {
+                            <a href="@routes.RAJobInterviewController.cancelInterview(interview.getId())"
+                               class="btn waves-effect waves-light red darken-2"
+                               onclick="return confirm('Are you sure you want to cancel this interview?')">
+                                <i class="material-icons left">cancel</i>Cancel Interview
+                            </a>
+                        }
+                        <a href="@routes.RAJobInterviewController.myInterviews()"
+                           class="btn waves-effect waves-light blue darken-2" style="margin-left: 10px;">
+                            <i class="material-icons left">list</i>All Interviews
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

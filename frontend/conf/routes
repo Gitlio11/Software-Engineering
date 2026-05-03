@@ -307,6 +307,19 @@ POST        /rajob/sendOfferEmail                                               
 
 ########################################################## RAJobs #####################################################################
 
+########################################################## RA Job Interviews ###########################################################
+GET         /rajobInterview/schedulePage/:rajobApplicationId                               controllers.RAJobInterviewController.scheduleInterviewPage(rajobApplicationId: Long)
+POST        /rajobInterview/schedulePOST/:rajobApplicationId                               controllers.RAJobInterviewController.scheduleInterviewPOST(rajobApplicationId: Long)
+GET         /rajobInterview/detail/:interviewId                                            controllers.RAJobInterviewController.interviewDetail(interviewId: Long)
+GET         /rajobInterview/myInterviews                                                   controllers.RAJobInterviewController.myInterviews()
+GET         /rajobInterview/cancel/:interviewId                                            controllers.RAJobInterviewController.cancelInterview(interviewId: Long)
+########################################################## RA Job Interviews ###########################################################
+
+########################################################## Faculty Profiles ############################################################
+GET         /faculty/profiles                                                              controllers.FacultyProfileController.facultyProfiles()
+GET         /faculty/profileDetail/:userId                                                 controllers.FacultyProfileController.facultyProfileDetail(userId: Long)
+########################################################## Faculty Profiles ############################################################
+
 ########################################################## TACandidate ################################################################
 
 GET         /tapool/tacandidateRegisterPage                                                            controllers.TACandidateController.tacandidateRegisterPage()
