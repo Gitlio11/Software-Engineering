@@ -18,15 +18,14 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: ci_root_pw
           MYSQL_DATABASE: scihub_test
-          MYSQL_USER: scihub
-          MYSQL_PASSWORD: ci_test_pw
+          MYSQL_ROOT_HOST: '%'
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=ci_root_pw"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=ci_root_pw --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     steps:
       - name: Checkout repository
@@ -42,6 +41,14 @@ jobs:
         run: |
           curl -fL https://github.com/sbt/sbt/releases/download/v1.9.9/sbt-1.9.9.tgz | sudo tar xz -C /usr/local
           echo "/usr/local/sbt/bin" >> $GITHUB_PATH
+
+      - name: Wait for MySQL and verify connectivity
+        run: |
+          until mysql -h 127.0.0.1 -u root -pci_root_pw -e "SELECT 1" scihub_test; do
+            echo "MySQL not yet ready, retrying in 3s..."
+            sleep 3
+          done
+          echo "MySQL is ready."
 
       - name: Cache Ivy and sbt
         uses: actions/cache@v4
@@ -65,8 +72,8 @@ jobs:
           PLAY_SECRET_KEY: ci-test-secret-key
           DB_DRIVER: com.mysql.cj.jdbc.Driver
           DB_URL: "jdbc:mysql://127.0.0.1:3306/scihub_test?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-          DB_USERNAME: scihub
-          DB_PASSWORD: ci_test_pw
+          DB_USERNAME: root
+          DB_PASSWORD: ci_root_pw
 
       - name: Upload test reports
         if: always()
