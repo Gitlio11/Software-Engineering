@@ -38,8 +38,8 @@ create table bug_report (
   title                         varchar(255),
   description                   varchar(255),
   solved                        integer not null,
-  create_time                   datetime(6),
-  solve_time                    datetime(6),
+  create_time                   datetime,
+  solve_time                    datetime,
   long_description              varchar(255),
   reporter_id                   bigint,
   fixer_id                      bigint,
@@ -130,7 +130,7 @@ create table file (
   table_name                    varchar(255),
   file_type                     varchar(255),
   table_recorder_id             varchar(255),
-  timestamp                     datetime(6),
+  timestamp                     datetime,
   constraint pk_file primary key (id)
 );
 
@@ -208,7 +208,7 @@ create table mail (
   id                            bigint auto_increment not null,
   title                         varchar(255),
   content                       varchar(255),
-  timestamp                     datetime(6),
+  timestamp                     datetime,
   sender_id                     bigint,
   receiver_id                   bigint,
   constraint pk_mail primary key (id)
@@ -435,8 +435,8 @@ create table suggestion (
   title                         varchar(255),
   description                   varchar(255),
   solved                        integer not null,
-  create_time                   datetime(6),
-  solve_time                    datetime(6),
+  create_time                   datetime,
+  solve_time                    datetime,
   long_description              varchar(255),
   reporter_id                   bigint,
   implementor_id                bigint,
