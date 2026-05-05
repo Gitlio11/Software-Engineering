@@ -1,0 +1,98 @@
+@(interviews: List[RAJobInterview], userTypes: String)
+@import helper._
+@import models._
+@import models.RAJobInterview
+
+@main("My Interviews") {
+    <div class="container">
+        <div class="card-panel">
+            <div class="row card-panel z-depth-0">
+                <div class="col s12">
+                    @if(userTypes == "1" || userTypes == "0") {
+                        <h5 class="center">Interviews I Scheduled</h5>
+                    } else {
+                        <h5 class="center">My Scheduled Interviews</h5>
+                    }
+                </div>
+            </div>
+
+            @if(interviews.size() > 0) {
+                <table class="centered responsive-table striped">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            @if(userTypes == "1" || userTypes == "0") {
+                                <th>Applicant</th>
+                            }
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for(iv <- interviews) {
+                        <tr>
+                            <td>
+                                @if(iv.getRajobApplication() != null && iv.getRajobApplication().getAppliedRAJob() != null) {
+                                    <a href="@routes.RAJobController.rajobDetail(iv.getRajobApplication().getAppliedRAJob().getId())">
+                                        @iv.getRajobApplication().getAppliedRAJob().getTitle()
+                                    </a>
+                                } else { - }
+                            </td>
+                            @if(userTypes == "1" || userTypes == "0") {
+                                <td>
+                                    @if(iv.getRajobApplication() != null && iv.getRajobApplication().getApplicant() != null) {
+                                        @iv.getRajobApplication().getApplicant().getUserName()
+                                    } else { - }
+                                </td>
+                            }
+                            <td>@iv.getInterviewDate()</td>
+                            <td>@iv.getInterviewTime()</td>
+                            <td>
+                                @if(iv.getInterviewType() == "online") {
+                                    <span class="chip blue lighten-4 blue-text text-darken-2" style="font-size:0.8em;">Online</span>
+                                } else {
+                                    <span class="chip green lighten-4 green-text text-darken-2" style="font-size:0.8em;">In-Person</span>
+                                }
+                            </td>
+                            <td>@iv.getLocation()</td>
+                            <td>
+                                @if(iv.getStatus() == "scheduled") {
+                                    <span class="new badge green" data-badge-caption="scheduled"></span>
+                                } else if(iv.getStatus() == "cancelled") {
+                                    <span class="new badge red" data-badge-caption="cancelled"></span>
+                                } else {
+                                    <span class="new badge grey" data-badge-caption="@iv.getStatus()"></span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@routes.RAJobInterviewController.interviewDetail(iv.getId())"
+                                   class="btn-small waves-effect waves-light blue darken-2">View</a>
+                                @if((userTypes == "1" || userTypes == "0") && iv.getStatus() == "scheduled") {
+                                    <a href="@routes.RAJobInterviewController.cancelInterview(iv.getId())"
+                                       class="btn-small waves-effect waves-light red darken-2"
+                                       onclick="return confirm('Cancel this interview?')"
+                                       style="margin-left: 4px;">Cancel</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            } else {
+                <div class="center" style="padding: 40px 0;">
+                    <i class="material-icons large grey-text">event_busy</i>
+                    <p class="grey-text">No interviews scheduled yet.</p>
+                    @if(userTypes == "4") {
+                        <a href="@routes.RAJobController.rajobList(1, "")" class="btn blue darken-2">
+                            Browse RA Positions
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}

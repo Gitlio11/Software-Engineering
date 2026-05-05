@@ -1,0 +1,165 @@
+@(profiles: com.fasterxml.jackson.databind.JsonNode, userTypes: String)
+
+@scripts = {
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            buildChart();
+
+            var searchInput = document.getElementById('facultySearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    filterTable(this.value.toLowerCase());
+                });
+            }
+        });
+
+        function filterTable(query) {
+            var rows = document.querySelectorAll('#facultyTable tbody tr');
+            rows.forEach(function (row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function buildChart() {
+            var rawData = [];
+            try {
+                rawData = JSON.parse(document.getElementById('profilesJson').textContent);
+            } catch (e) { return; }
+
+            var fieldCounts = {};
+            rawData.forEach(function (p) {
+                if (!p.researchFields) return;
+                p.researchFields.split(/[,;]+/).forEach(function (f) {
+                    var trimmed = f.trim();
+                    if (trimmed) fieldCounts[trimmed] = (fieldCounts[trimmed] || 0) + 1;
+                });
+            });
+
+            var data = Object.entries(fieldCounts)
+                .sort(function (a, b) { return b[1] - a[1]; })
+                .slice(0, 12);
+
+            if (data.length === 0) return;
+
+            var container = document.getElementById('researchChart');
+            var totalWidth = container.clientWidth || 700;
+            var margin = { top: 20, right: 30, bottom: 120, left: 50 };
+            var width = totalWidth - margin.left - margin.right;
+            var height = 320 - margin.top - margin.bottom;
+
+            var svg = d3.select('#researchChart').append('svg')
+                .attr('width', totalWidth)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var x = d3.scaleBand()
+                .domain(data.map(function (d) { return d[0]; }))
+                .range([0, width])
+                .padding(0.3);
+
+            var maxVal = d3.max(data, function (d) { return d[1]; });
+            var y = d3.scaleLinear().domain([0, maxVal]).nice().range([height, 0]);
+
+            svg.append('g').attr('transform', 'translate(0,' + height + ')')
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-35)')
+                .style('text-anchor', 'end')
+                .style('font-size', '11px');
+
+            svg.append('g').call(d3.axisLeft(y).ticks(Math.min(maxVal, 6)).tickFormat(d3.format('d')));
+
+            svg.selectAll('.bar')
+                .data(data)
+                .enter().append('rect')
+                .attr('class', 'bar')
+                .attr('x', function (d) { return x(d[0]); })
+                .attr('y', function (d) { return y(d[1]); })
+                .attr('width', x.bandwidth())
+                .attr('height', function (d) { return height - y(d[1]); })
+                .attr('fill', '#1565C0')
+                .attr('rx', 3);
+
+            svg.selectAll('.label')
+                .data(data)
+                .enter().append('text')
+                .attr('class', 'label')
+                .attr('x', function (d) { return x(d[0]) + x.bandwidth() / 2; })
+                .attr('y', function (d) { return y(d[1]) - 4; })
+                .attr('text-anchor', 'middle')
+                .style('font-size', '11px')
+                .text(function (d) { return d[1]; });
+        }
+    </script>
+}
+
+@main("Faculty Research Profiles", scripts) {
+
+    <script id="profilesJson" type="application/json">@Html(profiles.toString())</script>
+
+    <div class="container">
+        <div class="card-panel">
+            <h4 class="center">Faculty Research Profiles</h4>
+            <p class="center grey-text">Browse faculty members and their research interests across all departments.</p>
+
+            <div class="card z-depth-1" style="padding: 16px; margin-bottom: 24px;">
+                <h6 class="center grey-text text-darken-2">Research Field Distribution</h6>
+                <div id="researchChart" style="width: 100%; overflow-x: auto;"></div>
+            </div>
+
+            <div class="input-field">
+                <i class="material-icons prefix">search</i>
+                <input id="facultySearch" type="text" placeholder="Search by name, department, or research field...">
+                <label for="facultySearch">Search Faculty</label>
+            </div>
+
+            @if(profiles.isArray() && profiles.size() > 0) {
+                <table class="striped responsive-table" id="facultyTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>School</th>
+                            <th>Research Fields</th>
+                            <th>Highest Degree</th>
+                            <th>Profile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for(i <- 0 until profiles.size()) {
+                        @defining(profiles.get(i)) { p =>
+                            <tr>
+                                <td>@p.path("userName").asText("-")</td>
+                                <td>@p.path("department").asText("-")</td>
+                                <td>@p.path("school").asText("-")</td>
+                                <td>
+                                    @defining(p.path("researchFields").asText("")) { fields =>
+                                        @if(fields.nonEmpty) {
+                                            @for(field <- fields.split("[,;]").toList) {
+                                                <span class="chip blue lighten-5 blue-text text-darken-2"
+                                                      style="font-size: 0.78em; margin: 2px;">@field.trim()</span>
+                                            }
+                                        } else { - }
+                                    }
+                                </td>
+                                <td>@p.path("highestDegree").asText("-")</td>
+                                <td>
+                                    <a href="@routes.FacultyProfileController.facultyProfileDetail(p.path("userId").asLong())"
+                                       class="btn-small waves-effect waves-light blue darken-2">View</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            } else {
+                <div class="center" style="padding: 40px 0;">
+                    <i class="material-icons large grey-text">person_search</i>
+                    <p class="grey-text">No faculty profiles found.</p>
+                </div>
+            }
+        </div>
+    </div>
+}
