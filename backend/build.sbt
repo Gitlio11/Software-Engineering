@@ -45,3 +45,4 @@ libraryDependencies += "org.apache.commons" % "commons-email" % "1.5"
 // Test dependencies (required by existing FunctionalTest and UnitTest)
 libraryDependencies += "org.assertj"    % "assertj-core" % "3.24.2" % Test
 libraryDependencies += "org.awaitility" % "awaitility"   % "3.1.6"  % Test
+libraryDependencies += "com.h2database" % "h2"           % "1.4.200" % Test
