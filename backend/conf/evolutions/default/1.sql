@@ -38,8 +38,8 @@ create table bug_report (
   title                         varchar(255),
   description                   varchar(255),
   solved                        integer not null,
-  create_time                   datetime,
-  solve_time                    datetime,
+  create_time                   timestamp,
+  solve_time                    timestamp,
   long_description              varchar(255),
   reporter_id                   bigint,
   fixer_id                      bigint,
@@ -100,7 +100,7 @@ create table challenge_application (
 
 create table course (
   id                            bigint auto_increment not null,
-  is_active                     tinyint(1) default 0 not null,
+  is_active                     boolean default false not null,
   course_id                     varchar(255),
   name                          varchar(255),
   description                   varchar(255),
@@ -130,7 +130,7 @@ create table file (
   table_name                    varchar(255),
   file_type                     varchar(255),
   table_recorder_id             varchar(255),
-  timestamp                     datetime,
+  timestamp                     timestamp,
   constraint pk_file primary key (id)
 );
 
@@ -208,7 +208,7 @@ create table mail (
   id                            bigint auto_increment not null,
   title                         varchar(255),
   content                       varchar(255),
-  timestamp                     datetime,
+  timestamp                     timestamp,
   sender_id                     bigint,
   receiver_id                   bigint,
   constraint pk_mail primary key (id)
@@ -295,7 +295,7 @@ create table project (
   id                            bigint auto_increment not null,
   is_active                     varchar(255),
   parent_project_id             bigint,
-  is_popular                    tinyint(1) default 0 not null,
+  is_popular                    boolean default false not null,
   popular_ranking               bigint not null,
   authentication                varchar(255),
   access_times                  bigint not null,
@@ -384,6 +384,19 @@ create table rajob_application (
   constraint pk_rajob_application primary key (id)
 );
 
+create table rajob_interview (
+  id                            bigint auto_increment not null,
+  rajob_application_id          bigint,
+  interview_date                varchar(255),
+  interview_time                varchar(255),
+  location                      varchar(255),
+  interview_type                varchar(255),
+  notes                         varchar(255),
+  status                        varchar(255),
+  created_time                  varchar(255),
+  constraint pk_rajob_interview primary key (id)
+);
+
 create table researcher_info (
   highest_degree                varchar(255),
   orcid                         varchar(255),
@@ -435,8 +448,8 @@ create table suggestion (
   title                         varchar(255),
   description                   varchar(255),
   solved                        integer not null,
-  create_time                   datetime,
-  solve_time                    datetime,
+  create_time                   timestamp,
+  solve_time                    timestamp,
   long_description              varchar(255),
   reporter_id                   bigint,
   implementor_id                bigint,
@@ -445,7 +458,7 @@ create table suggestion (
 
 create table tacandidate (
   id                            bigint auto_increment not null,
-  is_active                     tinyint(1) default 0 not null,
+  is_active                     boolean default false not null,
   is_resume_sent                integer not null,
   smu_id                        varchar(255),
   semester                      varchar(255),
@@ -575,7 +588,7 @@ create table taweekly_hours (
   id                            bigint auto_increment not null,
   week                          integer not null,
   hours                         integer not null,
-  approval                      tinyint(1) default 0 not null,
+  approval                      boolean default false not null,
   assignment_id                 bigint,
   constraint pk_taweekly_hours primary key (id)
 );
@@ -628,18 +641,18 @@ create table user (
   recommend_rating_count        bigint not null,
   homepage                      varchar(255),
   avatar                        varchar(255),
-  service_provider              tinyint(1) default 0 not null,
+  service_provider              boolean default false not null,
   expertises                    varchar(255),
   categories                    varchar(255),
   detail                        varchar(255),
   user_type                     integer,
   service_execution_counts      bigint not null,
-  service_user                  tinyint(1) default 0 not null,
+  service_user                  boolean default false not null,
   create_time                   varchar(255),
   is_active                     varchar(255),
   token                         varchar(255),
   project_zone_id               bigint,
-  unread_mention                tinyint(1) default 0 not null,
+  unread_mention                boolean default false not null,
   constraint pk_user primary key (id)
 );
 
@@ -736,6 +749,9 @@ create index ix_rajob_application_rajob_id on rajob_application (rajob_id);
 alter table rajob_application add constraint fk_rajob_application_applicant_id foreign key (applicant_id) references user (id) on delete restrict on update restrict;
 create index ix_rajob_application_applicant_id on rajob_application (applicant_id);
 
+alter table rajob_interview add constraint fk_rajob_interview_rajob_application_id foreign key (rajob_application_id) references rajob_application (id) on delete restrict on update restrict;
+create index ix_rajob_interview_rajob_application_id on rajob_interview (rajob_application_id);
+
 alter table researcher_info add constraint fk_researcher_info_user_id foreign key (user_id) references user (id) on delete restrict on update restrict;
 
 alter table student_info add constraint fk_student_info_user_id foreign key (user_id) references user (id) on delete restrict on update restrict;
@@ -800,135 +816,138 @@ create index ix_friendship_user_2 on friendship (userbid);
 
 # --- !Downs
 
-alter table bug_report drop foreign key fk_bug_report_reporter_id;
-drop index ix_bug_report_reporter_id on bug_report;
+alter table bug_report drop constraint if exists fk_bug_report_reporter_id;
+drop index if exists ix_bug_report_reporter_id;
 
-alter table bug_report drop foreign key fk_bug_report_fixer_id;
-drop index ix_bug_report_fixer_id on bug_report;
+alter table bug_report drop constraint if exists fk_bug_report_fixer_id;
+drop index if exists ix_bug_report_fixer_id;
 
-alter table challenge drop foreign key fk_challenge_challenge_publisher_id;
-drop index ix_challenge_challenge_publisher_id on challenge;
+alter table challenge drop constraint if exists fk_challenge_challenge_publisher_id;
+drop index if exists ix_challenge_challenge_publisher_id;
 
-alter table challenge_application drop foreign key fk_challenge_application_challenge_id;
-drop index ix_challenge_application_challenge_id on challenge_application;
+alter table challenge_application drop constraint if exists fk_challenge_application_challenge_id;
+drop index if exists ix_challenge_application_challenge_id;
 
-alter table challenge_application drop foreign key fk_challenge_application_applicant_id;
-drop index ix_challenge_application_applicant_id on challenge_application;
+alter table challenge_application drop constraint if exists fk_challenge_application_applicant_id;
+drop index if exists ix_challenge_application_applicant_id;
 
-alter table course_taassignment drop foreign key fk_course_taassignment_course_id;
-drop index ix_course_taassignment_course_id on course_taassignment;
+alter table course_taassignment drop constraint if exists fk_course_taassignment_course_id;
+drop index if exists ix_course_taassignment_course_id;
 
-alter table course_taassignment drop foreign key fk_course_taassignment_ta_id;
-drop index ix_course_taassignment_ta_id on course_taassignment;
+alter table course_taassignment drop constraint if exists fk_course_taassignment_ta_id;
+drop index if exists ix_course_taassignment_ta_id;
 
-alter table job drop foreign key fk_job_job_publisher_id;
-drop index ix_job_job_publisher_id on job;
+alter table job drop constraint if exists fk_job_job_publisher_id;
+drop index if exists ix_job_job_publisher_id;
 
-alter table job_application drop foreign key fk_job_application_job_id;
-drop index ix_job_application_job_id on job_application;
+alter table job_application drop constraint if exists fk_job_application_job_id;
+drop index if exists ix_job_application_job_id;
 
-alter table job_application drop foreign key fk_job_application_applicant_id;
-drop index ix_job_application_applicant_id on job_application;
+alter table job_application drop constraint if exists fk_job_application_applicant_id;
+drop index if exists ix_job_application_applicant_id;
 
-alter table mail drop foreign key fk_mail_sender_id;
-drop index ix_mail_sender_id on mail;
+alter table mail drop constraint if exists fk_mail_sender_id;
+drop index if exists ix_mail_sender_id;
 
-alter table mail drop foreign key fk_mail_receiver_id;
-drop index ix_mail_receiver_id on mail;
+alter table mail drop constraint if exists fk_mail_receiver_id;
+drop index if exists ix_mail_receiver_id;
 
-alter table mail_file drop foreign key fk_mail_file_mail;
-drop index ix_mail_file_mail on mail_file;
+alter table mail_file drop constraint if exists fk_mail_file_mail;
+drop index if exists ix_mail_file_mail;
 
-alter table mail_file drop foreign key fk_mail_file_file;
-drop index ix_mail_file_file on mail_file;
+alter table mail_file drop constraint if exists fk_mail_file_file;
+drop index if exists ix_mail_file_file;
 
-alter table user_organization drop foreign key fk_user_organization_organization;
-drop index ix_user_organization_organization on user_organization;
+alter table user_organization drop constraint if exists fk_user_organization_organization;
+drop index if exists ix_user_organization_organization;
 
-alter table user_organization drop foreign key fk_user_organization_user;
-drop index ix_user_organization_user on user_organization;
+alter table user_organization drop constraint if exists fk_user_organization_user;
+drop index if exists ix_user_organization_user;
 
-alter table project drop foreign key fk_project_principal_investigator_id;
-drop index ix_project_principal_investigator_id on project;
+alter table project drop constraint if exists fk_project_principal_investigator_id;
+drop index if exists ix_project_principal_investigator_id;
 
-alter table project drop foreign key fk_project_sponsor_contact_id;
-drop index ix_project_sponsor_contact_id on project;
+alter table project drop constraint if exists fk_project_sponsor_contact_id;
+drop index if exists ix_project_sponsor_contact_id;
 
-alter table project drop foreign key fk_project_principal_investigator_organization_id;
-drop index ix_project_principal_investigator_organization_id on project;
+alter table project drop constraint if exists fk_project_principal_investigator_organization_id;
+drop index if exists ix_project_principal_investigator_organization_id;
 
-alter table project drop foreign key fk_project_sponsor_organization_id;
-drop index ix_project_sponsor_organization_id on project;
+alter table project drop constraint if exists fk_project_sponsor_organization_id;
+drop index if exists ix_project_sponsor_organization_id;
 
-alter table rajob drop foreign key fk_rajob_rajob_publisher_id;
-drop index ix_rajob_rajob_publisher_id on rajob;
+alter table rajob drop constraint if exists fk_rajob_rajob_publisher_id;
+drop index if exists ix_rajob_rajob_publisher_id;
 
-alter table rajob_application drop foreign key fk_rajob_application_rajob_id;
-drop index ix_rajob_application_rajob_id on rajob_application;
+alter table rajob_application drop constraint if exists fk_rajob_application_rajob_id;
+drop index if exists ix_rajob_application_rajob_id;
 
-alter table rajob_application drop foreign key fk_rajob_application_applicant_id;
-drop index ix_rajob_application_applicant_id on rajob_application;
+alter table rajob_application drop constraint if exists fk_rajob_application_applicant_id;
+drop index if exists ix_rajob_application_applicant_id;
 
-alter table researcher_info drop foreign key fk_researcher_info_user_id;
+alter table rajob_interview drop constraint if exists fk_rajob_interview_rajob_application_id;
+drop index if exists ix_rajob_interview_rajob_application_id;
 
-alter table student_info drop foreign key fk_student_info_user_id;
+alter table researcher_info drop constraint if exists fk_researcher_info_user_id;
 
-alter table suggestion drop foreign key fk_suggestion_reporter_id;
-drop index ix_suggestion_reporter_id on suggestion;
+alter table student_info drop constraint if exists fk_student_info_user_id;
 
-alter table suggestion drop foreign key fk_suggestion_implementor_id;
-drop index ix_suggestion_implementor_id on suggestion;
+alter table suggestion drop constraint if exists fk_suggestion_reporter_id;
+drop index if exists ix_suggestion_reporter_id;
 
-alter table tacandidate drop foreign key fk_tacandidate_ta_applicant_id;
-drop index ix_tacandidate_ta_applicant_id on tacandidate;
+alter table suggestion drop constraint if exists fk_suggestion_implementor_id;
+drop index if exists ix_suggestion_implementor_id;
 
-alter table tajob drop foreign key fk_tajob_tajob_publisher_id;
-drop index ix_tajob_tajob_publisher_id on tajob;
+alter table tacandidate drop constraint if exists fk_tacandidate_ta_applicant_id;
+drop index if exists ix_tacandidate_ta_applicant_id;
 
-alter table tajob_application drop foreign key fk_tajob_application_tajob_id;
-drop index ix_tajob_application_tajob_id on tajob_application;
+alter table tajob drop constraint if exists fk_tajob_tajob_publisher_id;
+drop index if exists ix_tajob_tajob_publisher_id;
 
-alter table tajob_application drop foreign key fk_tajob_application_applicant_id;
-drop index ix_tajob_application_applicant_id on tajob_application;
+alter table tajob_application drop constraint if exists fk_tajob_application_tajob_id;
+drop index if exists ix_tajob_application_tajob_id;
 
-alter table taweekly_hours drop foreign key fk_taweekly_hours_assignment_id;
-drop index ix_taweekly_hours_assignment_id on taweekly_hours;
+alter table tajob_application drop constraint if exists fk_tajob_application_applicant_id;
+drop index if exists ix_tajob_application_applicant_id;
 
-alter table technology drop foreign key fk_technology_technology_publisher_id;
-drop index ix_technology_technology_publisher_id on technology;
+alter table taweekly_hours drop constraint if exists fk_taweekly_hours_assignment_id;
+drop index if exists ix_taweekly_hours_assignment_id;
 
-alter table technology_usedin_project drop foreign key fk_technology_usedin_project_technology;
-drop index ix_technology_usedin_project_technology on technology_usedin_project;
+alter table technology drop constraint if exists fk_technology_technology_publisher_id;
+drop index if exists ix_technology_technology_publisher_id;
 
-alter table technology_usedin_project drop foreign key fk_technology_usedin_project_project;
-drop index ix_technology_usedin_project_project on technology_usedin_project;
+alter table technology_usedin_project drop constraint if exists fk_technology_usedin_project_technology;
+drop index if exists ix_technology_usedin_project_technology;
 
-alter table user drop foreign key fk_user_project_zone_id;
-drop index ix_user_project_zone_id on user;
+alter table technology_usedin_project drop constraint if exists fk_technology_usedin_project_project;
+drop index if exists ix_technology_usedin_project_project;
 
-alter table user_participation_project drop foreign key fk_user_participation_project_user;
-drop index ix_user_participation_project_user on user_participation_project;
+alter table user drop constraint if exists fk_user_project_zone_id;
+drop index if exists ix_user_project_zone_id;
 
-alter table user_participation_project drop foreign key fk_user_participation_project_project;
-drop index ix_user_participation_project_project on user_participation_project;
+alter table user_participation_project drop constraint if exists fk_user_participation_project_user;
+drop index if exists ix_user_participation_project_user;
 
-alter table followers drop foreign key fk_followers_user_1;
-drop index ix_followers_user_1 on followers;
+alter table user_participation_project drop constraint if exists fk_user_participation_project_project;
+drop index if exists ix_user_participation_project_project;
 
-alter table followers drop foreign key fk_followers_user_2;
-drop index ix_followers_user_2 on followers;
+alter table followers drop constraint if exists fk_followers_user_1;
+drop index if exists ix_followers_user_1;
 
-alter table friendrequests drop foreign key fk_friendrequests_user_1;
-drop index ix_friendrequests_user_1 on friendrequests;
+alter table followers drop constraint if exists fk_followers_user_2;
+drop index if exists ix_followers_user_2;
 
-alter table friendrequests drop foreign key fk_friendrequests_user_2;
-drop index ix_friendrequests_user_2 on friendrequests;
+alter table friendrequests drop constraint if exists fk_friendrequests_user_1;
+drop index if exists ix_friendrequests_user_1;
 
-alter table friendship drop foreign key fk_friendship_user_1;
-drop index ix_friendship_user_1 on friendship;
+alter table friendrequests drop constraint if exists fk_friendrequests_user_2;
+drop index if exists ix_friendrequests_user_2;
 
-alter table friendship drop foreign key fk_friendship_user_2;
-drop index ix_friendship_user_2 on friendship;
+alter table friendship drop constraint if exists fk_friendship_user_1;
+drop index if exists ix_friendship_user_1;
+
+alter table friendship drop constraint if exists fk_friendship_user_2;
+drop index if exists ix_friendship_user_2;
 
 drop table if exists author;
 
@@ -967,6 +986,8 @@ drop table if exists project;
 drop table if exists rajob;
 
 drop table if exists rajob_application;
+
+drop table if exists rajob_interview;
 
 drop table if exists researcher_info;
 

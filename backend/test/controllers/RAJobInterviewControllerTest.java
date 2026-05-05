@@ -18,15 +18,11 @@ import static play.test.Helpers.*;
 /**
  * End-to-end integration tests for the RA Job Interview scheduling feature.
  *
- * Covers the full faculty-schedules → student-views flow:
- *   1. Faculty POSTs a new interview for an application.
- *   2. Interview is retrievable by application ID and by interview ID.
- *   3. Student can list their own upcoming interviews.
- *   4. Faculty can list all interviews they have scheduled.
- *   5. Duplicate scheduling is rejected.
- *   6. Faculty can cancel a scheduled interview.
- *
+ * Table used by Ebean for RAJobInterview: rajob_interview (from 1.sql).
  * Fixture IDs start at 9200 to avoid collisions with other integration tests.
+ * Applications 9201 and 9203 are seeded; 9201 is used by most tests while
+ * 9203 is reserved for scheduleInterview_returns200AndCreatesRecord so that
+ * test is order-independent (9201 always has a pre-existing interview).
  */
 public class RAJobInterviewControllerTest {
 
@@ -47,32 +43,27 @@ public class RAJobInterviewControllerTest {
     }
 
     // -----------------------------------------------------------------------
-    // 1. Schedule interview — happy path
+    // 1. Schedule interview — happy path (uses application 9203, no prior interview)
     // -----------------------------------------------------------------------
 
     @Test
     public void scheduleInterview_returns200AndCreatesRecord() {
-        JsonNode body = buildScheduleBody(9201L);
         Http.RequestBuilder request = fakeRequest(POST, "/rajobInterview/schedule")
-                .bodyJson(body);
+                .bodyJson(buildScheduleBody(9203L));
         Result result = route(application, request);
 
         assertEquals("Schedule should return 200", OK, result.status());
 
-        String raw = contentAsString(result);
-        createdInterviewId = Long.parseLong(raw.trim());
-        assertTrue("Returned interview ID should be positive", createdInterviewId > 0);
+        long newId = Long.parseLong(contentAsString(result).trim());
+        assertTrue("Returned interview ID should be positive", newId > 0);
     }
 
     // -----------------------------------------------------------------------
-    // 2. Retrieve by application ID
+    // 2. Retrieve by application ID (uses pre-seeded interview for 9201)
     // -----------------------------------------------------------------------
 
     @Test
     public void getByApplicationId_returns200WithCorrectFields() {
-        // Ensure an interview exists first
-        ensureInterviewExists();
-
         Http.RequestBuilder request = fakeRequest(GET,
                 "/rajobInterview/getByApplicationId/9201");
         Result result = route(application, request);
@@ -94,8 +85,6 @@ public class RAJobInterviewControllerTest {
 
     @Test
     public void getById_returns200WithInterviewData() {
-        ensureInterviewExists();
-
         Http.RequestBuilder request = fakeRequest(GET,
                 "/rajobInterview/getById/" + createdInterviewId);
         Result result = route(application, request);
@@ -113,8 +102,6 @@ public class RAJobInterviewControllerTest {
 
     @Test
     public void getByApplicant_returnsStudentsInterview() {
-        ensureInterviewExists();
-
         Http.RequestBuilder request = fakeRequest(GET,
                 "/rajobInterview/getByApplicant/9202");
         Result result = route(application, request);
@@ -131,7 +118,7 @@ public class RAJobInterviewControllerTest {
                 break;
             }
         }
-        assertTrue("Created interview should appear in student list", found);
+        assertTrue("Pre-seeded interview should appear in student list", found);
     }
 
     // -----------------------------------------------------------------------
@@ -140,8 +127,6 @@ public class RAJobInterviewControllerTest {
 
     @Test
     public void getByPublisher_returnsFacultyInterviews() {
-        ensureInterviewExists();
-
         Http.RequestBuilder request = fakeRequest(GET,
                 "/rajobInterview/getByPublisher/9200");
         Result result = route(application, request);
@@ -153,19 +138,19 @@ public class RAJobInterviewControllerTest {
     }
 
     // -----------------------------------------------------------------------
-    // 6. Duplicate scheduling is rejected
+    // 6. Duplicate scheduling is rejected (9201 already has a scheduled interview)
+    //    Common.badRequestWrapper returns HTTP 200 with {"error": "..."} body.
     // -----------------------------------------------------------------------
 
     @Test
     public void scheduleInterview_duplicateIsRejected() {
-        ensureInterviewExists();
-
-        JsonNode body = buildScheduleBody(9201L);
         Http.RequestBuilder request = fakeRequest(POST, "/rajobInterview/schedule")
-                .bodyJson(body);
+                .bodyJson(buildScheduleBody(9201L));
         Result result = route(application, request);
 
-        assertEquals("Duplicate schedule should return 400", BAD_REQUEST, result.status());
+        assertEquals("Duplicate schedule should return 200 with error body", OK, result.status());
+        assertTrue("Response body should contain error field",
+                contentAsString(result).contains("error"));
     }
 
     // -----------------------------------------------------------------------
@@ -174,14 +159,11 @@ public class RAJobInterviewControllerTest {
 
     @Test
     public void cancelInterview_setsStatusToCancelled() {
-        ensureInterviewExists();
-
         Http.RequestBuilder cancel = fakeRequest(GET,
                 "/rajobInterview/cancel/" + createdInterviewId);
         Result cancelResult = route(application, cancel);
         assertEquals(OK, cancelResult.status());
 
-        // Verify status flipped
         Http.RequestBuilder check = fakeRequest(GET,
                 "/rajobInterview/getById/" + createdInterviewId);
         Result checkResult = route(application, check);
@@ -191,7 +173,7 @@ public class RAJobInterviewControllerTest {
 
         // Reset so other tests that depend on a live interview still pass
         Ebean.createSqlUpdate(
-                "UPDATE ra_job_interview SET status='scheduled' WHERE id=" + createdInterviewId
+                "UPDATE rajob_interview SET status='scheduled' WHERE id=" + createdInterviewId
         ).execute();
     }
 
@@ -210,18 +192,6 @@ public class RAJobInterviewControllerTest {
             "\"notes\": \"Please bring a copy of your CV and transcript.\"" +
             "}"
         );
-    }
-
-    private static void ensureInterviewExists() {
-        if (createdInterviewId < 1) {
-            JsonNode body = buildScheduleBody(9201L);
-            Http.RequestBuilder request = fakeRequest(POST, "/rajobInterview/schedule")
-                    .bodyJson(body);
-            Result result = route(application, request);
-            if (result.status() == OK) {
-                createdInterviewId = Long.parseLong(contentAsString(result).trim());
-            }
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -252,19 +222,42 @@ public class RAJobInterviewControllerTest {
             "(9200, 'true', 'open', 'ML Research Assistant (IV Test)', 1000, 2000, 1, 0, 9200)"
         ).execute();
 
-        // Application by the student
+        // Application 9201 — used by most tests (gets the pre-seeded interview)
         Ebean.createSqlUpdate(
             "INSERT INTO rajob_application (id, rajob_id, applicant_id, " +
             "apply_headline, rating, rating_count, recommend_rating, recommend_rating_count) VALUES " +
             "(9201, 9200, 9202, 'Interested in ML research', 0, 0, 0, 0)"
         ).execute();
+
+        // Application 9203 — reserved for scheduleInterview_returns200AndCreatesRecord
+        Ebean.createSqlUpdate(
+            "INSERT INTO rajob_application (id, rajob_id, applicant_id, " +
+            "apply_headline, rating, rating_count, recommend_rating, recommend_rating_count) VALUES " +
+            "(9203, 9200, 9202, 'Second application for IV test', 0, 0, 0, 0)"
+        ).execute();
+
+        // Pre-seed one scheduled interview for application 9201
+        Ebean.createSqlUpdate(
+            "INSERT INTO rajob_interview " +
+            "(rajob_application_id, interview_date, interview_time, location, " +
+            " interview_type, notes, status, created_time) VALUES " +
+            "(9201, '2026-06-10', '14:00', 'SOE Seminar Room 3-01', " +
+            " 'in-person', 'Please bring a copy of your CV and transcript.', " +
+            " 'scheduled', '2026-05-04 00:00:00')"
+        ).execute();
+
+        // Store the auto-generated interview ID for use in tests
+        io.ebean.SqlRow row = Ebean.createSqlQuery(
+            "SELECT id FROM rajob_interview WHERE rajob_application_id = 9201"
+        ).findOne();
+        createdInterviewId = row != null ? row.getLong("id") : -1;
     }
 
     private static void cleanFixture() {
         Ebean.createSqlUpdate(
-            "DELETE FROM ra_job_interview WHERE rajob_application_id = 9201"
+            "DELETE FROM rajob_interview WHERE rajob_application_id IN (9201, 9203)"
         ).execute();
-        Ebean.createSqlUpdate("DELETE FROM rajob_application WHERE id = 9201").execute();
+        Ebean.createSqlUpdate("DELETE FROM rajob_application WHERE id IN (9201, 9203)").execute();
         Ebean.createSqlUpdate("DELETE FROM rajob              WHERE id = 9200").execute();
         Ebean.createSqlUpdate("DELETE FROM `user`             WHERE id IN (9200, 9202)").execute();
     }
