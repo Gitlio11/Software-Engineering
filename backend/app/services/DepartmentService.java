@@ -96,7 +96,7 @@ public class DepartmentService {
             "JOIN author_paper ap ON ap.author_id = a.id " +
             "JOIN paper p ON p.id = ap.paper_id " +
             "WHERE p.year IS NOT NULL AND p.year != '' " +
-            "  AND CAST(p.year AS UNSIGNED) >= :cutoff " +
+            "  AND CAST(p.year AS SIGNED) >= :cutoff " +
             "GROUP BY ri.department";
 
         SqlQuery pubQuery = Ebean.createSqlQuery(pubSql);
@@ -111,7 +111,7 @@ public class DepartmentService {
 
         // get research keywords by concatenating all research_fields per department
         String kwSql =
-            "SELECT department, GROUP_CONCAT(research_fields SEPARATOR ',') AS all_fields " +
+            "SELECT department, GROUP_CONCAT(research_fields) AS all_fields " +
             "FROM researcher_info " +
             "WHERE department IS NOT NULL AND TRIM(department) != '' " +
             "GROUP BY department";
