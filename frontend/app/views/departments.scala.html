@@ -1,8 +1,66 @@
-@(userId: Long, username: String)
+@(userId: Long, username: String, departments: com.fasterxml.jackson.databind.JsonNode)
 
-@main("SMU Departments", null) {
-
+@scripts = {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            buildChart();
+        });
+
+        function buildChart() {
+            try {
+                var ctx = document.getElementById('deptChart').getContext('2d');
+                var cards = document.querySelectorAll('.dept-card');
+                var labels = [], pubs = [], funded = [];
+                cards.forEach(function(c) {
+                    labels.push(c.getAttribute('data-name'));
+                    pubs.push(parseInt(c.getAttribute('data-publications')) || 0);
+                    funded.push(parseInt(c.getAttribute('data-projects')) || 0);
+                });
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Publications', data: pubs, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+                            { label: 'Funded Projects', data: funded, backgroundColor: 'rgba(255, 99, 132, 0.7)' }
+                        ]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+            } catch(e) { console.warn('Chart init failed', e); }
+        }
+
+        function filterDepartments() {
+            var input = document.getElementById("searchInput").value.toLowerCase();
+            var cards = document.querySelectorAll(".dept-card");
+            cards.forEach(function(card) {
+                var name = card.getAttribute("data-name").toLowerCase();
+                card.style.display = name.includes(input) ? "" : "none";
+            });
+        }
+
+        function sortDepartments() {
+            var sortBy = document.getElementById("sortSelect").value;
+            var container = document.getElementById("departmentCards");
+            var cards = Array.from(document.querySelectorAll(".dept-card"));
+            cards.sort(function(a, b) {
+                if (sortBy === "name") {
+                    return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"));
+                } else if (sortBy === "faculty") {
+                    return b.getAttribute("data-faculty") - a.getAttribute("data-faculty");
+                } else if (sortBy === "projects") {
+                    return b.getAttribute("data-projects") - a.getAttribute("data-projects");
+                } else if (sortBy === "publications") {
+                    return b.getAttribute("data-publications") - a.getAttribute("data-publications");
+                }
+            });
+            cards.forEach(function(card) { container.appendChild(card); });
+        }
+    </script>
+}
+
+@main("SMU Departments", scripts) {
 
     <div class="container">
 
@@ -36,11 +94,40 @@
             </div>
         </div>
 
-        <!-- Department Cards loaded by JS -->
+        <!-- Department Cards -->
         <div class="row" id="departmentCards">
-            <div class="col s12 center">
-                <p>Loading departments...</p>
-            </div>
+            @if(departments == null || departments.size() == 0) {
+                <div class="col s12 center"><p>No departments found.</p></div>
+            } else {
+                @for(i <- 0 until departments.size()) {
+                    @defining(departments.get(i)) { dept =>
+                        <div class="col s12 m6 l4 dept-card"
+                             data-name="@dept.path("name").asText()"
+                             data-faculty="@dept.path("facultyCount").asInt()"
+                             data-projects="@dept.path("activeProjectCount").asInt()"
+                             data-publications="@dept.path("publicationCountLast3Years").asInt()">
+                            <div class="card hoverable">
+                                <div class="card-content">
+                                    <span class="card-title">@dept.path("name").asText()</span>
+                                    <p><b>Faculty:</b> @dept.path("facultyCount").asInt()</p>
+                                    <p><b>Active Projects:</b> @dept.path("activeProjectCount").asInt()</p>
+                                    <p><b>Funded Projects:</b> @dept.path("fundedProjectCount").asInt()</p>
+                                    <p><b>Publications (Last 3 Years):</b> @dept.path("publicationCountLast3Years").asInt()</p>
+                                    @if(dept.path("topKeywords").isArray()) {
+                                        <p><b>Top Keywords:</b></p>
+                                        @for(j <- 0 until dept.path("topKeywords").size()) {
+                                            <span class="chip">@dept.path("topKeywords").get(j).asText()</span>
+                                        }
+                                    }
+                                </div>
+                                <div class="card-action">
+                                    <a href="/department/departmentDetail/@java.net.URLEncoder.encode(dept.path("name").asText(), "UTF-8")">View Profile</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
         </div>
 
         <!-- Bar Chart -->
@@ -56,121 +143,5 @@
         </div>
 
     </div>
-
-    <script>
-        // Bar Chart setup
-        var ctx = document.getElementById('deptChart').getContext('2d');
-        var deptChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Publications',
-                        data: [],
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
-                    },
-                    {
-                        label: 'Funded Projects',
-                        data: [],
-                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Fetch real data from backend
-        fetch('/department/departmentList')
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                var departments = data.data || data;
-                var container = document.getElementById('departmentCards');
-                container.innerHTML = '';
-
-                departments.forEach(function(dept) {
-                    var keywords = dept.topKeywords ? dept.topKeywords.map(function(k) {
-                        return '<span class="chip">' + k + '</span>';
-                    }).join('') : '';
-
-                    var card = '<div class="col s12 m6 l4 dept-card"' +
-                        ' data-name="' + dept.name + '"' +
-                        ' data-faculty="' + dept.facultyCount + '"' +
-                        ' data-projects="' + dept.activeProjectCount + '"' +
-                        ' data-publications="' + dept.publicationCountLast3Years + '">' +
-                        '<div class="card hoverable">' +
-                        '<div class="card-content">' +
-                        '<span class="card-title">' + dept.name + '</span>' +
-                        '<p><b>Faculty:</b> ' + dept.facultyCount + '</p>' +
-                        '<p><b>Active Projects:</b> ' + dept.activeProjectCount + '</p>' +
-                        '<p><b>Funded Projects:</b> ' + dept.fundedProjectCount + '</p>' +
-                        '<p><b>Publications (Last 3 Years):</b> ' + dept.publicationCountLast3Years + '</p>' +
-                        '<p><b>Top Keywords:</b></p>' + keywords +
-                        '</div>' +
-                        '<div class="card-action">' +
-                        '<a href="/department/departmentDetail/' + encodeURIComponent(dept.name) + '">View Profile</a>' +
-                        '</div></div></div>';
-
-                    container.innerHTML += card;
-                });
-
-                // Update chart with real data
-                deptChart.data.labels = departments.map(function(d) { return d.name; });
-                deptChart.data.datasets[0].data = departments.map(function(d) { return d.publicationCountLast3Years; });
-                deptChart.data.datasets[1].data = departments.map(function(d) { return d.fundedProjectCount; });
-                deptChart.update();
-            })
-            .catch(function(error) {
-                console.error('Error:', error);
-                document.getElementById('departmentCards').innerHTML =
-                    '<p class="center red-text">Error loading departments. Please try again.</p>';
-            });
-
-        // Filter
-        function filterDepartments() {
-            var input = document.getElementById("searchInput").value.toLowerCase();
-            var cards = document.querySelectorAll(".dept-card");
-            cards.forEach(function(card) {
-                var name = card.getAttribute("data-name").toLowerCase();
-                if (name.includes(input)) {
-                    card.style.display = "";
-                } else {
-                    card.style.display = "none";
-                }
-            });
-        }
-
-        // Sort
-        function sortDepartments() {
-            var sortBy = document.getElementById("sortSelect").value;
-            var container = document.getElementById("departmentCards");
-            var cards = Array.from(document.querySelectorAll(".dept-card"));
-
-            cards.sort(function(a, b) {
-                if (sortBy === "name") {
-                    return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"));
-                } else if (sortBy === "faculty") {
-                    return b.getAttribute("data-faculty") - a.getAttribute("data-faculty");
-                } else if (sortBy === "projects") {
-                    return b.getAttribute("data-projects") - a.getAttribute("data-projects");
-                } else if (sortBy === "publications") {
-                    return b.getAttribute("data-publications") - a.getAttribute("data-publications");
-                }
-            });
-
-            cards.forEach(function(card) {
-                container.appendChild(card);
-            });
-        }
-    </script>
 
 }

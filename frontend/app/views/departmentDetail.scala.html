@@ -1,108 +1,114 @@
-@(userId: Long, username: String)
+@(userId: Long, username: String, dept: com.fasterxml.jackson.databind.JsonNode)
 
-@main("Department Detail", null) {
+@main("Department Detail") {
 
     <div class="container">
-
-            <!-- Back Button -->
         <div class="row">
             <div class="col s12">
-                <a href="/departments" class="btn blue darken-3 waves-effect waves-light" style="margin-top: 20px;">
-                    <i class="material-icons left">arrow_back</i>Back to Departments
-                </a>
-            </div>
-        </div>
+                <div class="card-panel">
 
-            <!-- Department Header -->
-        <div class="row">
-            <div class="col s12">
-                <div class="card blue darken-3 white-text">
-                    <div class="card-content">
-                        <h4 class="center">Computer Science Department</h4>
-                        <p class="center">Faculty: 24 &nbsp;|&nbsp; Active Projects: 12</p>
-                        <p class="center">
-                            <span class="chip white blue-text">AI</span>
-                            <span class="chip white blue-text">Machine Learning</span>
-                            <span class="chip white blue-text">Cybersecurity</span>
-                            <span class="chip white blue-text">Data Science</span>
-                            <span class="chip white blue-text">NLP</span>
-                        </p>
-                    </div>
+                    @if(dept == null || dept.isNull) {
+                        <h4 class="center">Department not found</h4>
+                    } else {
+
+                        <h4 class="center">@dept.path("name").asText() Department</h4>
+
+                        @if(!dept.path("school").asText("").isEmpty) {
+                            <p class="center grey-text">@dept.path("school").asText()</p>
+                        }
+
+                        <div class="center" style="margin-bottom: 16px;">
+                            <span>Faculty: @dept.path("facultyCount").asInt()</span> &nbsp;|&nbsp;
+                            <span>Active Projects: @dept.path("activeProjectCount").asInt()</span> &nbsp;|&nbsp;
+                            <span>Funded Projects: @dept.path("fundedProjectCount").asInt()</span> &nbsp;|&nbsp;
+                            <span>Publications (Last 3 Yrs): @dept.path("publicationCountLast3Years").asInt()</span>
+                        </div>
+
+                        @if(dept.path("topKeywords").isArray() && dept.path("topKeywords").size() > 0) {
+                            <div class="center" style="margin-bottom: 24px;">
+                                @for(i <- 0 until dept.path("topKeywords").size()) {
+                                    <span class="chip blue lighten-5 blue-text text-darken-2" style="margin: 3px;">
+                                        @dept.path("topKeywords").get(i).asText()
+                                    </span>
+                                }
+                            </div>
+                        }
+
+                        <h5>Faculty Members</h5>
+                        @if(!dept.path("faculty").isArray() || dept.path("faculty").size() == 0) {
+                            <p class="grey-text">No faculty data available.</p>
+                        } else {
+                            <table class="striped responsive-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Research Areas</th>
+                                        <th>Homepage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for(i <- 0 until dept.path("faculty").size()) {
+                                        @defining(dept.path("faculty").get(i)) { f =>
+                                            <tr>
+                                                <td>@f.path("firstName").asText() @f.path("lastName").asText()</td>
+                                                <td>@f.path("researchFields").asText("-")</td>
+                                                <td>
+                                                    @defining(f.path("homepage").asText("")) { hp =>
+                                                        @if(hp.nonEmpty) {
+                                                            <a href="@hp" target="_blank" class="blue-text">Profile</a>
+                                                        } else { - }
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        <h5 style="margin-top: 24px;">Projects</h5>
+                        @if(!dept.path("projects").isArray() || dept.path("projects").size() == 0) {
+                            <p class="grey-text">No project data available.</p>
+                        } else {
+                            <table class="striped responsive-table">
+                                <thead>
+                                    <tr>
+                                        <th>Project Title</th>
+                                        <th>Start Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for(i <- 0 until dept.path("projects").size()) {
+                                        @defining(dept.path("projects").get(i)) { p =>
+                                            <tr>
+                                                <td>@p.path("title").asText("-")</td>
+                                                <td>@p.path("startDate").asText("-")</td>
+                                                <td>
+                                                    @if(p.path("isActive").asText("").equalsIgnoreCase("true") || p.path("isActive").asText("") == "1") {
+                                                        <span class="green-text">Active</span>
+                                                    } else {
+                                                        <span class="grey-text">Inactive</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        <div class="center" style="margin-top: 24px;">
+                            <a href="@routes.DepartmentController.departmentList()" class="btn waves-effect waves-light blue darken-2">
+                                <i class="material-icons left">arrow_back</i>Back to Departments
+                            </a>
+                        </div>
+
+                    }
+
                 </div>
             </div>
         </div>
-
-            <!-- Faculty List -->
-        <div class="row">
-            <div class="col s12">
-                <h5>Faculty Members</h5>
-                <table class="striped responsive-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Research Area</th>
-                            <th>Publications</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Dr. John Smith</td>
-                            <td>Machine Learning</td>
-                            <td>42</td>
-                        </tr>
-                        <tr>
-                            <td>Dr. Jane Doe</td>
-                            <td>Cybersecurity</td>
-                            <td>35</td>
-                        </tr>
-                        <tr>
-                            <td>Dr. Bob Johnson</td>
-                            <td>Data Science</td>
-                            <td>28</td>
-                        </tr>
-                        <tr>
-                            <td>Dr. Alice Brown</td>
-                            <td>NLP</td>
-                            <td>31</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-            <!-- Project List -->
-        <div class="row">
-            <div class="col s12">
-                <h5>Active Projects</h5>
-                <table class="striped responsive-table">
-                    <thead>
-                        <tr>
-                            <th>Project Title</th>
-                            <th>Lead Faculty</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>AI-Powered Medical Diagnosis</td>
-                            <td>Dr. John Smith</td>
-                            <td><span class="green-text">Active</span></td>
-                        </tr>
-                        <tr>
-                            <td>Cybersecurity Threat Detection</td>
-                            <td>Dr. Jane Doe</td>
-                            <td><span class="green-text">Active</span></td>
-                        </tr>
-                        <tr>
-                            <td>Natural Language Processing for Education</td>
-                            <td>Dr. Alice Brown</td>
-                            <td><span class="green-text">Active</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
 
 }
