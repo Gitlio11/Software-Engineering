@@ -161,8 +161,8 @@ play.evolutions.enabled = false
 | Team Member | Cloned Repo | App Running Locally | Tests Passing |
 |---|---|---|---|
 | Emilio Munoz | Yes | Yes | Yes |
-| Savannah Nelson | TBD | TBD | TBD |
-| Yash Shah | TBD | TBD | TBD |
+| Savannah Nelson | Yes | Yes | Yes |
+| Yash Shah | Yes | Yes | Yes |
 
 ---
 
@@ -173,11 +173,11 @@ Tests the `Department` model class and its nested `DepartmentFaculty` and `Depar
 
 | Test | Result |
 |---|---|
-| `department_gettersAndSetters_workCorrectly` | PASS |
-| `department_topKeywords_storeAndRetrieveList` | PASS |
-| `department_facultyList_storesCorrectly` | PASS |
-| `department_projectList_storesCorrectly` | PASS |
-| `department_defaultConstructor_fieldsAreZeroOrNull` | PASS |
+| `testDepartmentName` | PASS |
+| `testKeywords` | PASS |
+| `testFacultyList` | PASS |
+| `testProjectList` | PASS |
+| `testEmptyDepartment` | PASS |
 
 ### DepartmentBrowserTest (End-to-End Headless Browser Test)
 Spins up a real Play test server with H2 in-memory database and simulates browser requests.

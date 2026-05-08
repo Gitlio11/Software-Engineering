@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Team 7 Onboarding Document</title></head>
+<body>
+
+<h1>Team 7 — Onboarding Document</h1>
+<p>
+  <strong>Course:</strong> Software Engineering<br>
+  <strong>Team Members:</strong> Emilio Munoz, Savannah Nelson, Yash Shah<br>
+  <strong>Feature:</strong> List and Visualize Department Research Profiles (Features 5 &amp; 7)
+</p>
+
+<hr>
+
+<h2>1. Environment Setup</h2>
+
+<p><strong>Prerequisites:</strong></p>
+<ul>
+  <li>Java JDK 11 or higher (verify with: <code>java -version</code>)</li>
+  <li>sbt (Scala Build Tool) — download at scala-sbt.org</li>
+  <li>IntelliJ IDEA with the Scala plugin</li>
+  <li>Git</li>
+</ul>
+
+<p><strong>Clone the repository:</strong></p>
+<pre>git clone https://github.com/Gitlio11/Software-Engineering.git
+cd Software-Engineering</pre>
+
+<p><strong>Running the backend:</strong></p>
+<ol>
+  <li>Open the <code>backend/</code> folder in IntelliJ</li>
+  <li>In the sbt shell, type: <code>run</code></li>
+  <li>Backend starts at http://localhost:9037</li>
+</ol>
+
+<p><strong>Running the frontend:</strong></p>
+<ol>
+  <li>Open the <code>frontend/</code> folder in IntelliJ</li>
+  <li>In the sbt shell, type: <code>run</code></li>
+  <li>Frontend starts at http://localhost:9036</li>
+</ol>
+
+<p><strong>Running tests:</strong></p>
+<pre>sbt test</pre>
+<p>To run a specific test:</p>
+<pre>testOnly controllers.DepartmentBrowserTest
+testOnly controllers.DepartmentModelTest</pre>
+
+<hr>
+
+<h2>2. Architecture Overview</h2>
+
+<p>The project uses two separate Play Framework applications — a frontend and a backend — that communicate via REST API.</p>
+
+<p><strong>Browser → Frontend (port 9036) → Backend (port 9037) → Database</strong></p>
+
+<ul>
+  <li><strong>Frontend:</strong> handles HTTP requests from the browser, calls the backend API, and renders Scala HTML templates</li>
+  <li><strong>Backend:</strong> exposes REST endpoints, contains business logic (services), and queries the database using Ebean ORM</li>
+  <li><strong>Database:</strong> MySQL in production, H2 in-memory for local development and testing</li>
+</ul>
+
+<hr>
+
+<h2>3. Key Files for Team 7's Feature</h2>
+
+<p><strong>Frontend:</strong></p>
+<ul>
+  <li><code>frontend/app/controllers/DepartmentController.java</code> — calls backend API, passes data to views</li>
+  <li><code>frontend/app/views/departments.scala.html</code> — department list page</li>
+  <li><code>frontend/app/views/departmentDetail.scala.html</code> — department detail page</li>
+  <li><code>frontend/conf/routes</code> — URL mappings for department pages</li>
+</ul>
+
+<p><strong>Backend:</strong></p>
+<ul>
+  <li><code>backend/app/controllers/DepartmentController.java</code> — REST endpoints for list and detail</li>
+  <li><code>backend/app/services/DepartmentService.java</code> — SQL queries and data aggregation</li>
+  <li><code>backend/app/models/Department.java</code> — Department data model</li>
+  <li><code>backend/conf/evolutions/default/2.sql</code> — seed data for local development</li>
+</ul>
+
+<p><strong>Routes added:</strong></p>
+<ul>
+  <li>GET /department/departmentList</li>
+  <li>GET /department/departmentListData</li>
+  <li>GET /department/departmentDetail/:departmentName</li>
+</ul>
+
+<hr>
+
+<h2>4. Database Configuration</h2>
+
+<p><strong>Option A — H2 In-Memory (default, no setup needed):</strong><br>
+The app runs out of the box using H2. Seed data is applied automatically on startup. No configuration required.</p>
+
+<p><strong>Option B — Real MySQL (shows actual SMU faculty data):</strong></p>
+<ol>
+  <li>Start MySQL: <code>brew services start mysql</code></li>
+  <li>Create the database: <code>mysql -u root -e "CREATE DATABASE scihub;"</code></li>
+  <li>Import the backup: <code>mysql -u root scihub &lt; db_backup/20250904-082908.sql</code></li>
+  <li>Create the file <code>backend/conf/application.local.conf</code> with your database credentials</li>
+  <li>Restart the backend</li>
+</ol>
+
+<p><em>Note: application.local.conf is gitignored and should never be committed.</em></p>
+
+<hr>
+
+<h2>5. Three Existing Controllers</h2>
+
+<p><strong>FacultyProfileController</strong> (<code>backend/app/controllers/FacultyProfileController.java</code>)<br>
+Returns a list of researcher profiles from the database. Queries <code>researcher_info</code> joined with <code>user</code> and returns JSON with name, department, school, and research fields.<br>
+Key endpoint: GET /faculty/facultyList</p>
+
+<p><strong>OrganizationController</strong> (<code>backend/app/controllers/OrganizationController.java</code>)<br>
+Manages research organizations on the platform. Supports listing, creating, and retrieving organization profiles including their associated projects and members.<br>
+Key endpoint: GET /organization/organizationList</p>
+
+<p><strong>PaperController</strong> (<code>backend/app/controllers/PaperController.java</code>)<br>
+Handles research paper data — searching papers, retrieving paper details, and linking papers to authors.<br>
+Key endpoint: GET /paper/searchPaper</p>
+
+<hr>
+
+<h2>6. Play Framework Tech Stack</h2>
+
+<ul>
+  <li><code>play.filters</code> — CORS, CSRF, and security headers</li>
+  <li><code>javaJdbc</code> — database connection pooling</li>
+  <li><code>ebean</code> — ORM for database queries</li>
+  <li><code>play.libs.Json</code> — JSON serialization/deserialization</li>
+  <li><code>com.mysql:mysql-connector-j</code> — MySQL JDBC driver</li>
+  <li><code>com.h2database:h2</code> — H2 in-memory database for testing</li>
+  <li><code>play.test.WithBrowser</code> — headless browser (HtmlUnit) for end-to-end tests</li>
+  <li>Scala HTML templates — server-side rendering via Play views</li>
+</ul>
+
+<hr>
+
+<h2>7. Team Setup Status</h2>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr>
+    <th>Team Member</th>
+    <th>Cloned Repo</th>
+    <th>App Running Locally</th>
+    <th>Tests Passing</th>
+  </tr>
+  <tr>
+    <td>Emilio Munoz</td>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <td>Savannah Nelson</td>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <td>Yash Shah</td>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>8. Test Execution Report</h2>
+
+<p><strong>DepartmentModelTest</strong> — Unit tests for the Department model (no database required)</p>
+<ul>
+  <li>testDepartmentName — PASS</li>
+  <li>testKeywords — PASS</li>
+  <li>testFacultyList — PASS</li>
+  <li>testProjectList — PASS</li>
+  <li>testEmptyDepartment — PASS</li>
+</ul>
+
+<p><strong>DepartmentBrowserTest</strong> — End-to-end headless browser tests (runs a real Play test server with H2)</p>
+<ul>
+  <li>departmentList_pageContainsDepartmentName — PASS</li>
+  <li>departmentList_responseIncludesFacultyCount — PASS</li>
+  <li>departmentDetail_pageContainsDepartmentName — PASS</li>
+  <li>departmentDetail_pageContainsFacultyData — PASS</li>
+  <li>departmentDetail_unknownDepartmentReturnsError — PASS</li>
+</ul>
+
+<p><strong>Total: 10 tests, 0 failures, 0 errors</strong></p>
+
+</body>
+</html>
